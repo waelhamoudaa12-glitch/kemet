@@ -36,12 +36,11 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         const userCredential = await createUserWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
         await updateProfile(userCredential.user, { displayName });
         
-        // Save to Firestore
         await setDoc(doc(db, 'users', userCredential.user.uid), {
           uid: userCredential.user.uid,
           phoneNumber: phoneNumber,
           displayName: displayName,
-          isAdmin: phoneNumber === '0101234567123', // Updated admin number
+          isAdmin: phoneNumber === '0101234567123', // Admin check
           createdAt: serverTimestamp()
         });
       } else {
@@ -50,16 +49,27 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       onClose();
     } catch (err: any) {
       console.error(err);
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+      if (err.code === 'auth/operation-not-allowed') {
+        setError('يجب تفعيل (Email/Password) من إعدادات Firebase Console أولاً.');
+      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
         if (mode === 'login') {
-          setError('هذا الرقم غير مسجل، يرجى إنشاء حساب أولاً');
+          setMode('signup');
+          setError('هذا الرقم غير مسجل، يرجى كتابة اسمك للتسجيل');
         } else {
-          setError('حدث خطأ في التسجيل');
+          setError('فشل في عملية التسجيل، تأكد من البيانات');
         }
       } else if (err.code === 'auth/email-already-in-use') {
-        setError('هذا الرقم مسجل بالفعل، جرب تسجيل الدخول');
+        setMode('login');
+        setError('هذا الرقم مسجل بالفعل، جاري محاولة تسجيل الدخول...');
+        // Auto retry login if they were in signup mode
+        try {
+          await signInWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
+          onClose();
+        } catch (loginErr) {
+          setError('فشل في تسجيل الدخول التلقائي');
+        }
       } else {
-        setError(err.message || 'حدث خطأ ما');
+        setError(err.message || 'حدث خطأ غير متوقع');
       }
     } finally {
       setLoading(false);
@@ -80,32 +90,32 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         </button>
 
         <div className="mb-10 text-center">
-            <h2 className="text-3xl font-black mb-2">مرحباً بك في <span className="text-blue-600">KEMET</span></h2>
+            <h2 className="text-3xl font-black mb-2 tracking-tighter text-blue-600">KEMET</h2>
             <p className="text-gray-400 text-sm">
-                {mode === 'login' ? 'سجل دخولك برقم هاتفك' : 'أنشئ حساباً جديداً للبدء'}
+                {mode === 'login' ? 'سجل دخولك برقم الهاتف' : 'أنشئ حساباً جديداً'}
             </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {mode === 'signup' && (
-            <div>
-              <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">الاسم الكامل</label>
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+              <label className="block text-xs font-bold text-gray-500 mb-2">الاسم</label>
               <div className="relative">
                 <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                 <input 
                   type="text" 
-                  placeholder="محمد أحمد"
+                  placeholder="اكتب اسمك هنا"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="w-full border-b-2 border-gray-100 py-4 pl-12 focus:border-blue-600 outline-none transition-all text-lg font-bold"
                   required
                 />
               </div>
-            </div>
+            </motion.div>
           )}
 
           <div>
-            <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">رقم الهاتف</label>
+            <label className="block text-xs font-bold text-gray-500 mb-2">رقم التليفون</label>
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
               <input 
@@ -119,7 +129,15 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             </div>
           </div>
 
-          {error && <p className="text-red-500 text-xs font-bold text-center mt-4">{error}</p>}
+          {error && (
+            <motion.p 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }}
+              className="text-xs font-bold text-center mt-4 p-3 bg-red-50 text-red-600 border border-red-100 rounded"
+            >
+              {error}
+            </motion.p>
+          )}
 
           <button 
             type="submit" 
@@ -128,20 +146,23 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                 <>
-                    {mode === 'login' ? 'دخول سريع' : 'إنشاء الحساب'}
+                    {mode === 'login' ? 'تـسـجـيـل الـدخـول' : 'إنـشـاء الـحـسـاب'}
                     <ArrowRight className="w-5 h-5" />
                 </>
             )}
           </button>
 
-
           <div className="text-center mt-6">
               <button 
                 type="button"
-                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                onClick={() => {
+                  setMode(mode === 'login' ? 'signup' : 'login');
+                  setError('');
+                }}
                 className="text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors"
+                id="switch-mode-btn"
               >
-                  {mode === 'login' ? 'ليس لديك حساب؟ أنشئ واحداً الآن' : 'لديك حساب بالفعل؟ سجل دخولك'}
+                  {mode === 'login' ? 'ليس لديك حساب؟ اضغط هنا للتسجيل' : 'لديك حساب بالفعل؟ اضغط هنا للدخول'}
               </button>
           </div>
         </form>
