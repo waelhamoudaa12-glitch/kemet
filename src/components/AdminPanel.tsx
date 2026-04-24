@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, deleteDoc, orderBy } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles } from 'lucide-react';
+import { Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles, Search } from 'lucide-react';
 
 export function AdminPanel({ onClose }: { onClose: () => void }) {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     // Order by createdAt descending so newest appear first
@@ -18,6 +19,11 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
     });
     return () => unsubscribe();
   }, []);
+
+  const filteredUsers = users.filter(u => 
+    (u.displayName?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (u.phoneNumber?.includes(searchQuery))
+  );
 
   const handleDeleteUser = async (userId: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟')) {
@@ -53,25 +59,52 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[150] bg-white flex flex-col font-sans">
-      <header className="p-8 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10 shadow-sm">
-        <div className="flex items-center gap-6">
-          <div className="bg-blue-600 p-3 rounded-2xl">
-            <ShieldCheck className="w-8 h-8 text-white" />
+      <header className="p-4 md:p-8 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center gap-4 md:gap-6">
+          <div className="bg-blue-600 p-2 md:p-3 rounded-2xl">
+            <ShieldCheck className="w-6 h-6 md:w-8 md:h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-black tracking-tighter">لوحة التحكم</h1>
-            <p className="text-gray-400 text-sm font-medium">إدارة {users.length} مستخدم مسجل</p>
+            <h1 className="text-xl md:text-3xl font-black tracking-tighter">لوحة التحكم</h1>
+            <p className="text-gray-400 text-[10px] md:text-sm font-medium">إدارة {users.length} مستخدم مسجل</p>
           </div>
         </div>
+
+        <div className="flex-1 max-w-md mx-8 hidden md:block">
+           <div className="relative">
+              <input 
+                type="text"
+                placeholder="بحث بالاسم أو الرقم..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 px-6 pl-12 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold text-sm"
+              />
+              <Loader2 className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 ${loading ? 'animate-spin' : 'hidden'}`} />
+              {!loading && (
+                <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              )}
+           </div>
+        </div>
+
         <button 
           onClick={onClose} 
-          className="w-14 h-14 flex items-center justify-center hover:bg-gray-100 rounded-full transition-all text-gray-400 hover:text-black"
+          className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center hover:bg-gray-100 rounded-full transition-all text-gray-400 hover:text-black"
         >
-          <X className="w-8 h-8" />
+          <X className="w-6 h-6 md:w-8 md:h-8" />
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-8 lg:p-16 bg-gray-50/50">
+      <div className="md:hidden p-4 bg-white border-b border-gray-100">
+         <input 
+            type="text"
+            placeholder="بحث بالاسم أو الرقم..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-gray-50 border border-gray-100 rounded-xl py-3 px-6 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold text-xs"
+          />
+      </div>
+
+      <main className="flex-1 overflow-y-auto p-4 md:p-16 bg-gray-50/50">
         {loading ? (
            <div className="flex flex-col items-center justify-center h-full gap-6">
              <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
@@ -82,10 +115,21 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
             <User className="w-16 h-16 opacity-20" />
             <p className="text-xl font-bold">لا يوجد مستخدمين مسجلين بعد</p>
           </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
+            <Search className="w-16 h-16 opacity-20" />
+            <p className="text-xl font-bold">لم يتم العثور على نتائج للبحث "{searchQuery}"</p>
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="text-blue-600 font-bold hover:underline"
+            >
+              إعادة تعيين البحث
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             <AnimatePresence mode="popLayout">
-              {users.map((u) => {
+              {filteredUsers.map((u) => {
                 const isNew = isNewUser(u.createdAt);
                 return (
                   <motion.div 

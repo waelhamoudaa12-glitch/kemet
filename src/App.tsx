@@ -233,7 +233,13 @@ export default function App() {
     return () => clearInterval(interval);
   }, [currentPage, heroImages.length]);
 
-  const handleStart = () => setCurrentPage('styles');
+  const handleStart = () => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setCurrentPage('styles');
+  };
   
   // Save selection to Firestore if logged in
   const saveSelection = async (newSelections: any) => {
@@ -250,6 +256,10 @@ export default function App() {
   };
 
   const handleSelectStyle = (styleId: string) => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     setSelectedStyle(styleId);
     const newSelections = { ...selections, style: styleId };
     setSelections(newSelections);
@@ -285,40 +295,69 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white font-sans text-brand-primary flex flex-row-reverse">
+      {/* Mobile Top Header */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 z-[45] flex items-center justify-between px-6 pr-20">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
+             <span className="text-blue-600 font-black text-xl tracking-tighter">Kemet</span>
+          </div>
+          <div className="flex items-center gap-4">
+              {user ? (
+                  <button 
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm shadow-sm"
+                  >
+                    {user.displayName?.charAt(0) || user.phoneNumber?.charAt(0) || 'U'}
+                  </button>
+              ) : (
+                  <button 
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="flex items-center gap-2 bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full shadow-lg active:scale-95 transition-transform"
+                  >
+                    <UserCircle className="w-4 h-4" />
+                    <span>دخول</span>
+                  </button>
+              )}
+          </div>
+      </header>
+
       {/* Persistent Sidebar */}
       <motion.aside 
         initial={{ x: 100 }} 
         animate={{ x: 0 }}
-        className="fixed top-0 right-0 bottom-0 w-20 lg:w-64 bg-white border-l border-border-light z-50 flex flex-col items-center py-12"
+        className="fixed top-0 right-0 bottom-0 w-16 md:w-20 lg:w-64 bg-white border-l border-border-light z-50 flex flex-col items-center py-6 md:py-12"
       >
-        <div className="mb-20 cursor-pointer" onClick={() => setCurrentPage('home')}>
+        <div className="mb-10 md:mb-20 cursor-pointer" onClick={() => setCurrentPage('home')}>
            <h1 className="text-xl lg:text-3xl font-black tracking-tighter uppercase whitespace-nowrap">
              <span className="hidden lg:inline">Ke</span><span className="text-blue-600">met</span>
              <span className="lg:hidden text-blue-600">K.</span>
            </h1>
         </div>
 
-        <nav className="flex-1 flex flex-col gap-10 w-full px-4 lg:px-8">
+        <nav className="flex-1 flex flex-col gap-8 md:gap-10 w-full px-2 lg:px-8">
             {navItems.map(item => (
                 <button 
                     key={item.id}
                     onClick={() => {
                         if (item.id === 'styles') {
-                            setCurrentPage('styles');
+                            if (!user) {
+                                setIsAuthModalOpen(true);
+                            } else {
+                                setCurrentPage('styles');
+                            }
                         } else {
                             setCurrentPage(item.id as AppState);
                         }
                     }}
-                    className={`flex items-center gap-4 group transition-all ${
+                    className={`flex items-center gap-4 group transition-all p-2 md:p-0 ${
                         currentPage === item.id ? 'text-blue-600' : 'text-gray-400 hover:text-black'
                     }`}
                 >
-                    <div className={`w-2 h-2 rounded-full transition-all ${currentPage === item.id ? 'bg-blue-600 scale-125' : 'bg-transparent group-hover:bg-gray-200'}`} />
+                    <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all hidden md:block ${currentPage === item.id ? 'bg-blue-600 scale-125' : 'bg-transparent group-hover:bg-gray-200'}`} />
                     <span className="text-xs lg:text-sm font-bold uppercase tracking-widest hidden lg:inline">{item.label}</span>
-                    {item.id === 'home' && <Home className="w-5 h-5 lg:hidden mx-auto" />}
-                    {item.id === 'about' && <Maximize2 className="w-5 h-5 lg:hidden mx-auto rotate-45" />}
-                    {item.id === 'styles' && <Palette className="w-5 h-5 lg:hidden mx-auto" />}
-                    {item.id === 'mydesign' && <CheckCircle2 className="w-5 h-5 lg:hidden mx-auto" />}
+                    {item.id === 'home' && <Home className="w-6 h-6 lg:hidden mx-auto" />}
+                    {item.id === 'about' && <Maximize2 className="w-6 h-6 lg:hidden mx-auto rotate-45" />}
+                    {item.id === 'styles' && <Palette className="w-6 h-6 lg:hidden mx-auto" />}
+                    {item.id === 'mydesign' && <CheckCircle2 className="w-6 h-6 lg:hidden mx-auto" />}
                 </button>
             ))}
             
@@ -357,7 +396,13 @@ export default function App() {
 
         <div className="mt-auto">
             <button 
-                onClick={() => setCurrentPage('styles')}
+                onClick={() => {
+                    if (!user) {
+                        setIsAuthModalOpen(true);
+                    } else {
+                        setCurrentPage('styles');
+                    }
+                }}
                 className="w-12 h-12 lg:w-48 lg:h-auto bg-black text-white lg:py-5 flex items-center justify-center gap-3 lg:text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-xl"
             >
                 <span className="hidden lg:inline">تصميم جديد</span>
@@ -367,7 +412,7 @@ export default function App() {
       </motion.aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 pr-20 lg:pr-64">
+      <main className="flex-1 pr-16 md:pr-20 lg:pr-64 pt-16 lg:pt-0">
         <AnimatePresence mode="wait">
           {currentPage === 'home' && (
             <motion.div 
@@ -393,7 +438,7 @@ export default function App() {
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="text-6xl lg:text-9xl mb-8 font-light leading-[0.9]"
+                  className="text-4xl md:text-6xl lg:text-9xl mb-8 font-light leading-[1.1] md:leading-[0.9]"
                 >
                   اصنع عالمك بلمسة <br /><span className="font-bold">من Kemet</span>
                 </motion.h1>
@@ -402,7 +447,7 @@ export default function App() {
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="text-lg lg:text-xl text-gray-500 mb-12 max-w-md font-light leading-relaxed"
+                  className="text-base md:text-lg lg:text-xl text-gray-500 mb-12 max-w-md font-light leading-relaxed"
                 >
                   نحن هنا لنحول جدران منزلك إلى لوحة فنية. اختر خاماتك، ألوانك، وتفاصيل منزلك بكل سهولة وأناقة مع خبراءنا.
                 </motion.p>
@@ -413,8 +458,8 @@ export default function App() {
                   transition={{ delay: 0.6 }}
                   whileHover={{ x: -10 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setCurrentPage('styles')}
-                  className="bg-black text-white px-12 py-6 text-xl font-bold rounded-none flex items-center gap-6 w-max shadow-2xl"
+                  onClick={handleStart}
+                  className="bg-black text-white px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-bold rounded-none flex items-center gap-4 md:gap-6 w-full md:w-max shadow-2xl justify-center"
                 >
                   ابدأ اختيار تصميمك
                   <ArrowRight className="w-6 h-6" />
@@ -458,26 +503,26 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="min-h-screen py-24 px-8 lg:px-24 max-w-7xl"
             >
-              <div className="flex flex-col lg:flex-row gap-20 items-center">
+              <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-center">
                  <div className="lg:w-1/2">
-                    <span className="text-blue-600 font-bold uppercase tracking-[0.4em] text-xs mb-8 block underline underline-offset-8">KEMET Identity</span>
-                    <h2 className="text-6xl lg:text-7xl font-black mb-10 leading-tight">نحن KEMET <br/> مستقبل التشطيب</h2>
-                    <div className="prose prose-xl font-light text-gray-500 leading-relaxed mb-12">
+                    <span className="text-blue-600 font-bold uppercase tracking-[0.4em] text-xs mb-6 lg:mb-8 block underline underline-offset-8">KEMET Identity</span>
+                    <h2 className="text-4xl md:text-6xl lg:text-7xl font-black mb-8 lg:mb-10 leading-tight">نحن KEMET <br/> مستقبل التشطيب</h2>
+                    <div className="prose prose-lg md:prose-xl font-light text-gray-500 leading-relaxed mb-10 lg:mb-12">
                        <p>شركة KEMET هي شريكك الموثوق في رحلة تحويل مساحتك الخاصة إلى واقع ملموس. استوحينا اسمنا من "كيميت" (الأرض السوداء) لنعكس العراقة والأصالة في البناء والتشطيب.</p>
-                       <p className="mt-6">نحن نؤمن بالشفافية، الجودة، والابتكار. نوفر لك الأدوات اللازمة لتصميم بيتك بنفسك، مع توفير أفضل الخامات تحت إشراف نخبة من المهندسين.</p>
+                       <p className="mt-4 md:mt-6">نحن نؤمن بالشفافية، الجودة، والابتكار. نوفر لك الأدوات اللازمة لتصميم بيتك بنفسك، مع توفير أفضل الخامات تحت إشراف نخبة من المهندسين.</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-8 py-8 border-t border-border-light">
+                    <div className="grid grid-cols-2 gap-6 md:gap-8 py-6 md:py-8 border-t border-border-light">
                        <div>
-                          <p className="text-4xl font-bold mb-2">1,200+</p>
-                          <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">عميل سعيد</p>
+                          <p className="text-3xl md:text-4xl font-bold mb-1 md:mb-2">1,200+</p>
+                          <p className="text-[10px] md:text-sm text-gray-400 font-bold uppercase tracking-widest">عميل سعيد</p>
                        </div>
                        <div>
-                          <p className="text-4xl font-bold mb-2">15</p>
-                          <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">جائزة تصميم</p>
+                          <p className="text-3xl md:text-4xl font-bold mb-1 md:mb-2">15</p>
+                          <p className="text-[10px] md:text-sm text-gray-400 font-bold uppercase tracking-widest">جائزة تصميم</p>
                        </div>
                     </div>
                  </div>
-                 <div className="lg:w-1/2 relative">
+                 <div className="lg:w-1/2 relative w-full">
                     <div className="aspect-[4/5] bg-gray-100 overflow-hidden">
                        <img 
                           src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200" 
@@ -485,9 +530,9 @@ export default function App() {
                           className="w-full h-full object-cover"
                        />
                     </div>
-                    <div className="absolute -bottom-10 -left-10 bg-black text-white p-12 max-w-sm">
-                       <p className="text-xl font-bold mb-4 italic">رؤيتنا</p>
-                       <p className="text-sm font-light leading-relaxed italic">"أن يصبح كل بيت في المنطقة العربية يعكس شخصية أصحابه من خلال حلول KEMET المبتكرة."</p>
+                    <div className="absolute -bottom-6 md:-bottom-10 -left-6 md:-left-10 bg-black text-white p-6 md:p-12 max-w-xs md:max-w-sm">
+                       <p className="text-lg md:text-xl font-bold mb-2 md:mb-4 italic">رؤيتنا</p>
+                       <p className="text-xs md:text-sm font-light leading-relaxed italic">"أن يصبح كل بيت في المنطقة العربية يعكس شخصية أصحابه من خلال حلول KEMET المبتكرة."</p>
                     </div>
                  </div>
               </div>
@@ -502,13 +547,13 @@ export default function App() {
               exit={{ opacity: 0, x: -20 }}
               className="max-w-7xl mx-auto px-6 py-24"
             >
-              <div className="mb-20">
+              <div className="mb-12 md:mb-20">
                 <span className="text-blue-600 font-bold uppercase tracking-[0.3em] text-xs mb-4 block">كتالوج الخيارات</span>
-                <h2 className="text-5xl lg:text-7xl mb-6 font-light">اختر <span className="font-bold">الستايل المفضل</span></h2>
-                <div className="w-24 h-1 bg-black"></div>
+                <h2 className="text-3xl md:text-5xl lg:text-7xl mb-6 font-light">اختر <span className="font-bold">الستايل المفضل</span></h2>
+                <div className="w-16 md:w-24 h-1 bg-black"></div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-4">
                 {STYLES.map((style, idx) => (
                   <motion.div
                     key={style.id}
@@ -583,12 +628,12 @@ export default function App() {
                   transition={{ duration: 0.5 }}
                   className="max-w-6xl mx-auto"
                 >
-                  <div className="mb-16">
+                  <div className="mb-12 lg:mb-16">
                     <span className="bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-6 inline-block">
                       KEMET Selection
                     </span>
-                    <h2 className="text-5xl lg:text-7xl font-light leading-tight mb-4">اختيار <span className="font-bold">{CATEGORIES[currentCategoryIndex].name}</span></h2>
-                    <p className="text-gray-400 lg:text-xl font-light italic">تفاصيل تعكس فخامة اختيارك لنمط {STYLES.find(s => s.id === selectedStyle)?.name}</p>
+                    <h2 className="text-3xl md:text-5xl lg:text-7xl font-light leading-tight mb-4">اختيار <span className="font-bold">{CATEGORIES[currentCategoryIndex].name}</span></h2>
+                    <p className="text-gray-400 text-sm md:text-lg lg:text-xl font-light italic">تفاصيل تعكس فخامة اختيارك لنمط {STYLES.find(s => s.id === selectedStyle)?.name}</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -673,10 +718,10 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="min-h-screen py-24 px-8 lg:px-24 max-w-7xl"
             >
-              <div className="mb-16">
+              <div className="mb-12 md:mb-16">
                  <span className="text-blue-600 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8">My Creations</span>
-                 <h2 className="text-6xl lg:text-7xl font-black mb-6 leading-tight">تصميمي الخاص</h2>
-                 <p className="text-gray-400 text-xl font-light italic">هذا هو اختيارك الذي تم حفظه لنمط {STYLES.find(s => s.id === selections.style)?.name || '---'}</p>
+                 <h2 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">تصميمي الخاص</h2>
+                 <p className="text-gray-400 text-sm md:text-xl font-light italic">هذا هو اختيارك الذي تم حفظه لنمط {STYLES.find(s => s.id === selections.style)?.name || '---'}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -749,11 +794,11 @@ export default function App() {
               className="min-h-screen flex items-center justify-center p-8 bg-brand-secondary/50 pt-16"
             >
               <div className="bg-white max-w-5xl w-full p-12 lg:p-24 shadow-2xl relative border-t-8 border-black">
-                  <div className="flex flex-col lg:flex-row justify-between items-start mb-20 gap-8">
+                  <div className="flex flex-col lg:flex-row justify-between items-start mb-12 md:mb-20 gap-8">
                     <div>
                       <span className="text-blue-600 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8">Final Selection</span>
-                      <h2 className="text-6xl font-black mb-4">ملخص تشطيبك</h2>
-                      <p className="text-gray-400 text-xl font-light italic">قائمة اختياراتك بناءً على طراز {STYLES.find(s => s.id === selectedStyle)?.name}</p>
+                      <h2 className="text-4xl md:text-6xl font-black mb-4">ملخص تشطيبك</h2>
+                      <p className="text-gray-400 text-sm md:text-xl font-light italic">قائمة اختياراتك بناءً على طراز {STYLES.find(s => s.id === selectedStyle)?.name}</p>
                     </div>
                     <div className="bg-gray-50 p-8 border border-border-light text-center">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">KEMET Ticket</p>
