@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Sans+Arabic:wght@300;400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", serif;
+  
+  --color-brand-primary: #1a1a1a;
+  --color-brand-secondary: #fdfdfd;
+  --color-brand-accent: #2563eb; /* Cobalt Blue */
+  --color-border-light: #f3f4f6;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased bg-white text-brand-primary;
+    direction: rtl;
+    letter-spacing: -0.01em;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-sans tracking-tight text-brand-primary;
+  }
+}
+
+.editorial-border {
+  @apply border border-border-light;
+}
+
+.editorial-sidebar {
+  @apply border-l border-border-light bg-white;
+}
+
+.stagger-item {
+  opacity: 0;
+  transform: translateY(20px);
+}

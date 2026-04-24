@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "users": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "displayName": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "phoneNumber"]
+    },
+    "designs": {
+      "title": "Design",
+      "description": "User saved finish selections",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "style": { "type": "string" },
+        "selections": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "style", "selections"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "Individual user profiles"
+    },
+    "/designs/{designId}": {
+      "schema": "designs",
+      "description": "Saved design configurations"
+    }
+  }
+}
