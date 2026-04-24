@@ -11,9 +11,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true ||
-        request.auth.token.phone_number == '+20101234567123' ||
-        request.auth.token.email == '0101234567123@kemet.app'
+        request.auth.token.email == '0101234567123@kemet.app' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
       );
     }
 
@@ -24,7 +23,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
       allow create: if isSignedIn() && (
-        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin'])) || 
+        (request.auth.uid == userId && request.resource.data.isAdmin == (request.auth.token.email == '0101234567123@kemet.app')) || 
         isAdmin()
       );
       allow update: if isAdmin();

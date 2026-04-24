@@ -11,7 +11,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
 import { AuthModal } from './components/AuthModal';
 import { AdminPanel } from './components/AdminPanel';
@@ -33,7 +33,7 @@ import {
 
 // --- Types ---
 
-type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about';
+type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'mydesign';
 
 interface Selection {
   style: string;
@@ -59,26 +59,44 @@ const STYLES = [
   {
     id: 'modern',
     name: 'مودرن (Modern)',
-    description: 'خطوط نظيفة، ألوان محايدة، وتصميم عصري.',
+    description: 'خطوط نظيفة، ألوان محايدة، وتصميم عصري يعتمد على البساطة والوظيفة.',
     image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=800',
   },
   {
     id: 'classic',
     name: 'كلاسيك (Classic)',
-    description: 'تفاصيل معمارية أنيقة، إضاءة دافئة، وفخامة خالدة.',
+    description: 'تفاصيل معمارية أنيقة، إضاءة دافئة، وفخامة خالدة تعكس الرقي.',
     image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=800',
   },
   {
+    id: 'neoclassic',
+    name: 'نيو كلاسيك (Neo-Classic)',
+    description: 'مزيج مثالي بين فخامة الكلاسيك وبساطة المودرن بتوازن دقيق.',
+    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=800',
+  },
+  {
     id: 'minimalist',
-    name: 'مينيماليست (Minimalist)',
-    description: 'البساطة هي كل شيء. مساحات مريحة وعملية.',
+    name: 'المينيمال (Minimalist)',
+    description: 'البساطة هي كل شيء. مساحات خالية من الفوضى تركز على الجوهر.',
     image: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&q=80&w=800',
   },
   {
     id: 'industrial',
-    name: 'إندستريال (Industrial)',
-    description: 'طوب مكشوف، معادن غامقة، ومظهر جريء.',
+    name: 'الاندستريال (Industrial)',
+    description: 'طوب مكشوف، معادن غامقة، ومظهر جريء مستوحى من المصانع القديمة.',
     image: 'https://images.unsplash.com/photo-1505673542670-a5e3ff5b14a3?auto=format&fit=crop&q=80&w=800',
+  },
+  {
+    id: 'scandinavian',
+    name: 'الاسكندنافي (Scandinavian)',
+    description: 'إضاءة طبيعية، أخشاب فاتحة، وجو مريح وهادئ مستوحى من الشمال.',
+    image: 'https://images.unsplash.com/photo-1555181126-cf46a03827c0?auto=format&fit=crop&q=80&w=800',
+  },
+  {
+    id: 'bohemian',
+    name: 'البوهيمي (Bohemian)',
+    description: 'ألوان حيوية، نباتات بكثرة، وتوليفة فنية تعكس الحرية والإبداع.',
+    image: 'https://images.unsplash.com/photo-1522758939261-80816d1ee14b?auto=format&fit=crop&q=80&w=800',
   }
 ];
 
@@ -172,22 +190,31 @@ export default function App() {
   const [heroImageIndex, setHeroImageIndex] = useState(0);
 
   const heroImages = [
-    "https://images.unsplash.com/photo-1628592102751-ba83b0314276?auto=format&fit=crop&q=80&w=1200",
-    "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&q=80&w=1200",
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200",
-    "https://images.unsplash.com/photo-1613490493576-7fde63bac817?auto=format&fit=crop&q=80&w=1200"
+    "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=1200",
+    "https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&q=80&w=1200",
+    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=1200",
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200"
   ];
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', u.uid));
-          setIsAdmin(userDoc.data()?.isAdmin === true);
-        } catch (err) {
-          console.error("Error fetching admin status:", err);
-          setIsAdmin(false);
+        // Fallback admin check for the number provided
+        if (u.email === '0101234567123@kemet.app') {
+          setIsAdmin(true);
+        } else {
+          try {
+            const userDoc = await getDoc(doc(db, 'users', u.uid));
+            const data = userDoc.data();
+            setIsAdmin(data?.isAdmin === true);
+            if (data?.selections) {
+              setSelections(data.selections);
+            }
+          } catch (err) {
+            console.error("Error fetching admin status:", err);
+            setIsAdmin(false);
+          }
         }
       } else {
         setIsAdmin(false);
@@ -208,13 +235,33 @@ export default function App() {
 
   const handleStart = () => setCurrentPage('styles');
   
+  // Save selection to Firestore if logged in
+  const saveSelection = async (newSelections: any) => {
+    if (user) {
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          selections: newSelections,
+          lastUpdated: serverTimestamp()
+        }, { merge: true });
+      } catch (err) {
+        console.error("Error saving selection:", err);
+      }
+    }
+  };
+
   const handleSelectStyle = (styleId: string) => {
     setSelectedStyle(styleId);
+    const newSelections = { ...selections, style: styleId };
+    setSelections(newSelections);
+    saveSelection(newSelections);
     setCurrentPage('configurator');
   };
 
   const handleOptionSelect = (catId: string, optionId: string) => {
-    setSelections(prev => ({ ...prev, [catId]: optionId }));
+    const newSelections = { ...selections, [catId]: optionId };
+    setSelections(newSelections);
+    saveSelection(newSelections);
+    
     if (currentCategoryIndex < CATEGORIES.length - 1) {
       setCurrentCategoryIndex(prev => prev + 1);
     } else {
@@ -233,6 +280,7 @@ export default function App() {
     { id: 'home', label: 'الرئيسية' },
     { id: 'about', label: 'عنا' },
     { id: 'styles', label: 'ابدأ التصميم' },
+    ...(user ? [{ id: 'mydesign', label: 'تصميمي' }] : []),
   ];
 
   return (
@@ -270,6 +318,7 @@ export default function App() {
                     {item.id === 'home' && <Home className="w-5 h-5 lg:hidden mx-auto" />}
                     {item.id === 'about' && <Maximize2 className="w-5 h-5 lg:hidden mx-auto rotate-45" />}
                     {item.id === 'styles' && <Palette className="w-5 h-5 lg:hidden mx-auto" />}
+                    {item.id === 'mydesign' && <CheckCircle2 className="w-5 h-5 lg:hidden mx-auto" />}
                 </button>
             ))}
             
@@ -388,7 +437,7 @@ export default function App() {
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 1.5, ease: "easeInOut" }}
                       src={heroImages[heroImageIndex]} 
-                      className="absolute inset-0 w-full h-full object-cover shadow-2xl grayscale-[0.5]"
+                      className="absolute inset-0 w-full h-full object-cover shadow-2xl"
                       alt="Architecture"
                     />
                    </AnimatePresence>
@@ -433,7 +482,7 @@ export default function App() {
                        <img 
                           src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200" 
                           alt="Our Workplace"
-                          className="w-full h-full object-cover grayscale"
+                          className="w-full h-full object-cover"
                        />
                     </div>
                     <div className="absolute -bottom-10 -left-10 bg-black text-white p-12 max-w-sm">
@@ -469,7 +518,7 @@ export default function App() {
                     onClick={() => handleSelectStyle(style.id)}
                     className="cursor-pointer group bg-white border border-border-light shadow-sm"
                   >
-                    <div className="aspect-[4/5] overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700">
+                    <div className="aspect-[4/5] overflow-hidden transition-all duration-700">
                       <img 
                         src={style.image} 
                         alt={style.name}
@@ -557,9 +606,7 @@ export default function App() {
                           <img 
                             src={option.image} 
                             alt={option.name} 
-                            className={`w-full h-full object-cover transition-all duration-700 ${
-                                selections[CATEGORIES[currentCategoryIndex].id] === option.id ? 'grayscale-0' : 'grayscale group-hover:grayscale-0'
-                            }`}
+                            className="w-full h-full object-cover transition-all duration-700"
                             referrerPolicy="no-referrer"
                           />
                            {option.color && (
@@ -614,6 +661,82 @@ export default function App() {
                     </button>
                   </div>
                 </motion.div>
+              </div>
+            </motion.div>
+          )}
+
+          {currentPage === 'mydesign' && (
+            <motion.div 
+              key="mydesign"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="min-h-screen py-24 px-8 lg:px-24 max-w-7xl"
+            >
+              <div className="mb-16">
+                 <span className="text-blue-600 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8">My Creations</span>
+                 <h2 className="text-6xl lg:text-7xl font-black mb-6 leading-tight">تصميمي الخاص</h2>
+                 <p className="text-gray-400 text-xl font-light italic">هذا هو اختيارك الذي تم حفظه لنمط {STYLES.find(s => s.id === selections.style)?.name || '---'}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {CATEGORIES.map((cat, idx) => {
+                  const selectionId = selections[cat.id];
+                  const option = cat.options.find(o => o.id === selectionId);
+                  
+                  return (
+                    <motion.div
+                      key={cat.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="group bg-white border border-gray-100 shadow-sm relative overflow-hidden flex flex-col"
+                    >
+                      <div className="aspect-[3/2] overflow-hidden bg-gray-50">
+                        {option ? (
+                          <img 
+                            src={option.image} 
+                            alt={option.name} 
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold italic">
+                            لم يتم الاختيار بعد
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-8 border-t border-gray-100">
+                        <div className="flex justify-between items-center mb-2">
+                           <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">{cat.name}</span>
+                           <span className="text-[10px] font-mono text-gray-300">#0{idx + 1}</span>
+                        </div>
+                        <h3 className="text-2xl font-bold">{option?.name || 'قيد الانتظار'}</h3>
+                      </div>
+                      {option && (
+                        <div className="absolute top-4 right-4 bg-black text-white p-2 rounded-full shadow-xl">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-20 flex flex-col md:flex-row gap-6">
+                <button 
+                  onClick={() => setCurrentPage('styles')}
+                  className="flex-1 bg-black text-white py-6 font-bold tracking-[0.2em] uppercase text-sm hover:bg-gray-800 transition-all flex items-center justify-center gap-4"
+                >
+                  بدء تصميم جديد
+                  <ArrowRight className="w-5 h-5 rotate-180" />
+                </button>
+                <button 
+                  onClick={() => window.print()}
+                  className="flex-1 border-2 border-black py-6 font-bold tracking-[0.2em] uppercase text-sm hover:bg-black hover:text-white transition-all"
+                >
+                  طباعة التصميم
+                </button>
               </div>
             </motion.div>
           )}

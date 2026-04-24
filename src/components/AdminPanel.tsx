@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, deleteDoc, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles } from 'lucide-react';
 
@@ -23,9 +23,22 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
     if (window.confirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟')) {
       try {
         await deleteDoc(doc(db, 'users', userId));
-      } catch (err) {
-        console.error(err);
-        alert('حدث خطأ أثناء الحذف. تأكد من صلاحياتك.');
+      } catch (error: any) {
+        console.error('Firestore Error Details:', error);
+        
+        // Detailed error info for debugging
+        const errInfo = {
+          error: error.message,
+          operationType: 'delete',
+          path: `users/${userId}`,
+          authInfo: {
+            userId: auth.currentUser?.uid,
+            email: auth.currentUser?.email,
+          }
+        };
+        
+        console.error('Firestore Error JSON:', JSON.stringify(errInfo));
+        alert('حدث خطأ أثناء الحذف: ' + (error.message.includes('permission-denied') ? 'ليس لديك صلاحية كافية' : error.message));
       }
     }
   };
@@ -107,6 +120,32 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                         <Phone className="w-5 h-5 text-blue-500" />
                         <span className="font-mono font-bold text-lg">{u.phoneNumber}</span>
                       </div>
+                      
+                      {u.selections && (
+                        <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50">
+                          <p className="text-[10px] font-black text-blue-600 uppercase mb-2">Selected Design</p>
+                          <div className="flex flex-col gap-1">
+                            {Object.entries(u.selections).map(([key, val]: [string, any]) => {
+                                const categoryName = key === 'style' ? 'النمط' : 
+                                    (key === 'walls' ? 'الحوائط' : 
+                                    (key === 'floors' ? 'الأرضيات' : 
+                                    (key === 'ceilings' ? 'الأسقف' : 
+                                    (key === 'doors' ? 'الأبواب' : 
+                                    (key === 'lighting' ? 'الإضاءة' : 
+                                    (key === 'bathrooms' ? 'الحمامات' : 
+                                    (key === 'kitchen' ? 'المطبخ' : key)))))));
+                                
+                                return (
+                                    <div key={key} className="flex justify-between items-center text-[10px] font-bold">
+                                        <span className="text-gray-400">{categoryName}:</span>
+                                        <span className="text-blue-800">{val}</span>
+                                    </div>
+                                );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex items-center gap-4 text-xs text-gray-400 px-2">
                         <Calendar className="w-4 h-4" />
                         <span>انضم: {u.createdAt?.toDate()?.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' }) || '---'}</span>

@@ -4,7 +4,7 @@ import {
   createUserWithEmailAndPassword,
   updateProfile
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import { Phone, Lock, X, ArrowRight, Loader2, User as UserIcon } from 'lucide-react';
@@ -59,17 +59,33 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           setError('فشل في عملية التسجيل، تأكد من البيانات');
         }
       } else if (err.code === 'auth/email-already-in-use') {
-        setMode('login');
-        setError('هذا الرقم مسجل بالفعل، جاري محاولة تسجيل الدخول...');
-        // Auto retry login if they were in signup mode
         try {
-          await signInWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
+          const userCredential = await signInWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
+          
+          const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+          if (!userDoc.exists()) {
+            await setDoc(doc(db, 'users', userCredential.user.uid), {
+              uid: userCredential.user.uid,
+              phoneNumber: phoneNumber,
+              displayName: displayName || 'مستخدم جديد',
+              isAdmin: phoneNumber === '0101234567123',
+              createdAt: serverTimestamp()
+            });
+          }
           onClose();
-        } catch (loginErr) {
-          setError('فشل في تسجيل الدخول التلقائي');
+        } catch (loginErr: any) {
+          if (loginErr.code === 'auth/invalid-credential' || loginErr.code === 'auth/wrong-password') {
+            setError('هذا الحساب مسجل بكلمة مرور قديمة. يرجى التواصل مع الدعم أو المحاولة لاحقاً.');
+          } else {
+            setError('هذا الرقم مسجل بالفعل، يرجى تسجيل الدخول بدلاً من التسجيل');
+          }
         }
       } else {
-        setError(err.message || 'حدث خطأ غير متوقع');
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+           setError('بيانات الدخول غير صحيحة');
+        } else {
+           setError(err.message || 'حدث خطأ غير متوقع');
+        }
       }
     } finally {
       setLoading(false);
