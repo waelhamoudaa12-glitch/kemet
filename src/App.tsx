@@ -296,45 +296,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white font-sans text-brand-primary flex flex-row-reverse">
-      {/* Mobile Top Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 z-[45] flex items-center justify-between px-6 pr-20">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
-             <span className="text-blue-600 font-black text-xl tracking-tighter">Kemet</span>
-          </div>
-          <div className="flex items-center gap-4">
-              {user ? (
-                  <button 
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm shadow-sm"
-                  >
-                    {user.displayName?.charAt(0) || user.phoneNumber?.charAt(0) || 'U'}
-                  </button>
-              ) : (
-                  <button 
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className="flex items-center gap-2 bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full shadow-lg active:scale-95 transition-transform"
-                  >
-                    <UserCircle className="w-4 h-4" />
-                    <span>دخول</span>
-                  </button>
-              )}
-          </div>
-      </header>
-
       {/* Persistent Sidebar */}
       <motion.aside 
         initial={{ x: 100 }} 
         animate={{ x: 0 }}
-        className="fixed top-0 right-0 bottom-0 w-16 md:w-20 lg:w-64 bg-white border-l border-border-light z-50 flex flex-col items-center py-6 md:py-12"
+        className="fixed top-0 right-0 bottom-0 w-20 lg:w-64 bg-white border-l border-border-light z-50 flex flex-col items-center py-12"
       >
-        <div className="mb-10 md:mb-20 cursor-pointer" onClick={() => setCurrentPage('home')}>
+        <div className="mb-20 cursor-pointer" onClick={() => setCurrentPage('home')}>
            <h1 className="text-xl lg:text-3xl font-black tracking-tighter uppercase whitespace-nowrap">
-             <span className="hidden lg:inline">Ke</span><span className="text-blue-600">met</span>
-             <span className="lg:hidden text-blue-600">K.</span>
+             <span className="md:inline">Ke</span><span className="text-blue-600">met</span>
            </h1>
         </div>
 
-        <nav className="flex-1 flex flex-col gap-8 md:gap-10 w-full px-2 lg:px-8">
+        <nav className="flex-1 flex flex-col gap-10 w-full px-4 lg:px-8">
             {navItems.map(item => (
                 <button 
                     key={item.id}
@@ -349,29 +323,25 @@ export default function App() {
                             setCurrentPage(item.id as AppState);
                         }
                     }}
-                    className={`flex items-center gap-4 group transition-all p-2 md:p-0 ${
+                    className={`flex items-center gap-4 group transition-all ${
                         currentPage === item.id ? 'text-blue-600' : 'text-gray-400 hover:text-black'
                     }`}
                 >
-                    <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all hidden md:block ${currentPage === item.id ? 'bg-blue-600 scale-125' : 'bg-transparent group-hover:bg-gray-200'}`} />
-                    <span className="text-xs lg:text-sm font-bold uppercase tracking-widest hidden lg:inline">{item.label}</span>
-                    {item.id === 'home' && <Home className="w-6 h-6 lg:hidden mx-auto" />}
-                    {item.id === 'about' && <Maximize2 className="w-6 h-6 lg:hidden mx-auto rotate-45" />}
-                    {item.id === 'styles' && <Palette className="w-6 h-6 lg:hidden mx-auto" />}
-                    {item.id === 'mydesign' && <CheckCircle2 className="w-6 h-6 lg:hidden mx-auto" />}
+                    <div className={`w-2 h-2 rounded-full transition-all ${currentPage === item.id ? 'bg-blue-600 scale-125' : 'bg-transparent group-hover:bg-gray-200'}`} />
+                    <span className="text-[10px] lg:text-sm font-bold uppercase tracking-widest block">{item.label}</span>
                 </button>
             ))}
             
             <div className="mt-4 border-t border-border-light pt-8 flex flex-col gap-4">
                 {user ? (
                     <>
-                        <div className="text-[10px] uppercase font-bold text-gray-300 tracking-tighter hidden lg:block overflow-hidden text-ellipsis whitespace-nowrap">
+                        <div className="text-[10px] uppercase font-bold text-gray-300 tracking-tighter block overflow-hidden text-ellipsis whitespace-nowrap text-right">
                             {user.displayName || user.phoneNumber}
                         </div>
                         {isAdmin && (
                             <button 
                                 onClick={() => setIsAdminPanelOpen(true)}
-                                className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest text-right lg:block hidden flex items-center justify-end gap-2"
+                                className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest text-right flex items-center justify-end gap-2"
                             >
                                 <Lock className="w-3 h-3" />
                                 لوحة الإدارة
@@ -379,7 +349,7 @@ export default function App() {
                         )}
                         <button 
                             onClick={() => signOut(auth)}
-                            className="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-widest text-right lg:block hidden"
+                            className="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-widest text-right"
                         >
                             خروج
                         </button>
@@ -387,7 +357,7 @@ export default function App() {
                 ) : (
                     <button 
                         onClick={() => setIsAuthModalOpen(true)}
-                        className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest text-right lg:block hidden"
+                        className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest text-right"
                     >
                         دخول
                     </button>
@@ -404,16 +374,16 @@ export default function App() {
                         setCurrentPage('styles');
                     }
                 }}
-                className="w-12 h-12 lg:w-48 lg:h-auto bg-black text-white lg:py-5 flex items-center justify-center gap-3 lg:text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-xl"
+                className="w-14 h-14 lg:w-48 lg:h-auto bg-black text-white lg:py-5 flex items-center justify-center gap-3 lg:text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-xl"
             >
                 <span className="hidden lg:inline">تصميم جديد</span>
-                <ArrowRight className="w-5 h-5 lg:w-4 lg:h-4" />
+                <Palette className="w-5 h-5" />
             </button>
         </div>
       </motion.aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 pr-16 md:pr-20 lg:pr-64 pt-16 lg:pt-0">
+      <main className="flex-1 pr-20 lg:pr-64">
         <AnimatePresence mode="wait">
           {currentPage === 'home' && (
             <motion.div 
@@ -439,7 +409,7 @@ export default function App() {
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="text-4xl md:text-6xl lg:text-9xl mb-8 font-light leading-[1.1] md:leading-[0.9]"
+                  className="text-5xl md:text-6xl lg:text-9xl mb-8 font-light leading-[1.1] md:leading-[0.9]"
                 >
                   اصنع عالمك بلمسة <br /><span className="font-bold">من Kemet</span>
                 </motion.h1>
@@ -554,7 +524,7 @@ export default function App() {
                 <div className="w-16 md:w-24 h-1 bg-black"></div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-4">
                 {STYLES.map((style, idx) => (
                   <motion.div
                     key={style.id}
@@ -637,7 +607,7 @@ export default function App() {
                     <p className="text-gray-400 text-sm md:text-lg lg:text-xl font-light italic">تفاصيل تعكس فخامة اختيارك لنمط {STYLES.find(s => s.id === selectedStyle)?.name}</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     {CATEGORIES[currentCategoryIndex].options.map((option) => (
                       <motion.div
                         key={option.id}
