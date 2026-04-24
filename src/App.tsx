@@ -28,7 +28,8 @@ import {
   CheckCircle2, 
   ArrowRight,
   Maximize2,
-  Lock
+  Lock,
+  UserCircle
 } from 'lucide-react';
 
 // --- Types ---
