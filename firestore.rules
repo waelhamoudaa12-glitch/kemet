@@ -27,7 +27,10 @@ service cloud.firestore {
         (request.auth.uid == userId && request.resource.data.isAdmin == (request.auth.token.email == '0101234567123@kemet.app')) || 
         isAdmin()
       );
-      allow update: if isAdmin();
+      allow update: if isAdmin() || (
+        isOwner(userId) && 
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['selections', 'lastUpdated']))
+      );
       allow delete: if isAdmin();
       allow list: if isAdmin();
     }
