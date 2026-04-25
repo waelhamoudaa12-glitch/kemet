@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, deleteDoc, orderBy, setDoc, writeBatch } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
@@ -14,6 +14,85 @@ const getIcon = (name: string) => {
   const icons: any = { ...LucideIcons, Home, Palette, ShieldCheck, Sparkles, User, Box: LucideIcons.Box, Layers: LucideIcons.Layers, Brush: LucideIcons.Brush, Layout: LucideIcons.Layout, Grid: LucideIcons.Grid };
   return icons[name] || Palette;
 };
+
+function ImageInput({ 
+  value, 
+  onChange, 
+  required 
+}: { 
+  value: string, 
+  onChange: (val: string) => void, 
+  required?: boolean 
+}) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800; // Resize to max 800
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          const MAX_HEIGHT = 800;
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        onChange(canvas.toDataURL('image/jpeg', 0.8));
+        setUploading(false);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="flex gap-4 text-right">
+      {value && (
+        <img src={value} alt="Preview" className="w-12 h-12 md:w-16 md:h-16 rounded-xl object-cover shrink-0 border border-gold-500/20 bg-egypt-black" />
+      )}
+      <div className="flex-1 relative">
+        <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">
+           الصورة (رابط خارجي أو ملف)
+        </label>
+        <div className="flex gap-2">
+          <input 
+             type="text" 
+             value={value}
+             onChange={(e) => onChange(e.target.value)}
+             className="flex-1 w-full min-w-0 bg-egypt-black border border-gold-500/10 rounded-2xl py-3 px-4 text-white font-mono text-xs md:text-sm text-left dir-ltr" 
+             placeholder="https://..."
+             required={required && !value}
+          />
+          <label className="shrink-0 bg-gold-500/10 hover:bg-gold-500/20 text-gold-500 px-4 py-3 rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest cursor-pointer transition-all flex items-center justify-center gap-2 border border-gold-500/20">
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+            <span className="hidden sm:inline">اختيار</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function AdminPanel({ 
   onClose, 
@@ -35,6 +114,13 @@ export function AdminPanel({
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [isAddingStyle, setIsAddingStyle] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+
+  // New option states for Categories
+  const [newOptName, setNewOptName] = useState('');
+  const [newOptImg, setNewOptImg] = useState('');
+  
+  // Local state for image forms
+  const [activeStyleImage, setActiveStyleImage] = useState('');
 
   useEffect(() => {
     // Listen to users collection
@@ -524,23 +610,30 @@ export function AdminPanel({
                         </div>
                       </div>
 
-                      {!u.isAdmin ? (
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteItem(u.id);
-                          }}
-                          className="w-full py-5 bg-red-500/5 text-red-500 font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3 active:scale-95"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                          حذف السجل
-                        </button>
-                      ) : (
-                        <div className="py-5 bg-gold-500/5 text-gold-500/20 font-black text-xs uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed">
-                          <ShieldCheck className="w-5 h-5" />
-                          System Owner
-                        </div>
-                      )}
+                      {(() => {
+                        const isMainOwner = u.email === 'waelweza123123@kemet.app' || u.email === 'waelhamoudaa12@gmail.com' || u.phoneNumber?.toLowerCase() === 'waelweza123123';
+                        if (!isMainOwner) {
+                          return (
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteItem(u.id);
+                              }}
+                              className="w-full py-5 bg-red-500/5 text-red-500 font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3 active:scale-95"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                              حذف السجل
+                            </button>
+                          );
+                        }
+                        
+                        return (
+                          <div className="py-5 bg-gold-500/5 text-gold-500/20 font-black text-xs uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed">
+                            <ShieldCheck className="w-5 h-5" />
+                            System Owner
+                          </div>
+                        );
+                      })()}
                     </motion.div>
                   );
                 })}
@@ -557,7 +650,10 @@ export function AdminPanel({
                     <p className="text-gold-500/40 text-xs font-black uppercase tracking-widest mt-1">إدارة التصميمات الأساسية</p>
                  </div>
                  <button 
-                   onClick={() => setIsAddingStyle(true)}
+                   onClick={() => {
+                     setIsAddingStyle(true);
+                     setActiveStyleImage('');
+                   }}
                    className="flex items-center gap-2 bg-gold-500 text-egypt-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-glow"
                  >
                    <Plus className="w-4 h-4" />
@@ -576,7 +672,10 @@ export function AdminPanel({
                           <p className="text-gold-200/40 text-xs font-medium mb-6 line-clamp-2">{style.description}</p>
                           <div className="flex gap-2">
                              <button 
-                               onClick={() => setEditingStyle(style)}
+                               onClick={() => {
+                                 setEditingStyle(style);
+                                 setActiveStyleImage(style.image || '');
+                               }}
                                className="flex-1 bg-gold-500/10 text-gold-500 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center justify-center gap-2"
                              >
                                 <Edit className="w-3 h-3" />
@@ -669,7 +768,7 @@ export function AdminPanel({
                     id: editingStyle?.id,
                     name: formData.get('name'),
                     description: formData.get('description'),
-                    image: formData.get('image'),
+                    image: activeStyleImage,
                   });
                 }}>
                   <div className="space-y-2">
@@ -681,8 +780,7 @@ export function AdminPanel({
                     <textarea name="description" defaultValue={editingStyle?.description} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white text-right h-32" required />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">رابط الصورة</label>
-                    <input name="image" defaultValue={editingStyle?.image} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white font-mono" required />
+                    <ImageInput value={activeStyleImage} onChange={setActiveStyleImage} required />
                   </div>
                   <button type="submit" className="w-full bg-gold-500 text-egypt-black py-5 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-glow">
                     <Save className="w-5 h-5" />
@@ -708,7 +806,7 @@ export function AdminPanel({
               <div className="p-8 md:p-12 overflow-y-auto">
                 <div className="flex justify-between items-center mb-8">
                   <h3 className="text-2xl font-black text-white">{editingCategory ? 'تعديل القسم والخامات' : 'إضافة قسم جديد'}</h3>
-                  <button onClick={() => { setIsAddingCategory(false); setEditingCategory(null); }} className="text-gold-500/40 hover:text-gold-500"><X /></button>
+                  <button onClick={() => { setIsAddingCategory(false); setEditingCategory(null); setNewOptName(''); setNewOptImg(''); }} className="text-gold-500/40 hover:text-gold-500"><X /></button>
                 </div>
                 
                 <form className="space-y-8" onSubmit={(e) => {
@@ -730,33 +828,46 @@ export function AdminPanel({
                     </div>
                     <div className="space-y-2">
                        <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">اسم الأيقونة (Lucide Icon Name)</label>
-                       <input name="iconName" defaultValue={editingCategory?.iconName} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white font-mono" required />
+                       <input name="iconName" defaultValue={editingCategory?.iconName} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white font-mono dir-ltr text-left" required />
                     </div>
                   </div>
 
                   {/* Options Section */}
                   <div className="space-y-6">
-                     <div className="flex justify-between items-center">
-                        <button 
-                          type="button"
-                          onClick={() => {
-                             const newOptName = prompt('اسم الخيار الجديد:');
-                             const newOptImg = prompt('رابط صورة الخيار:');
-                             if (newOptName && newOptImg) {
-                                const updatedOptions = [...(editingCategory?.options || []), {
-                                   id: `opt_${Date.now()}`,
-                                   name: newOptName,
-                                   image: newOptImg
-                                }];
-                                setEditingCategory({ ...editingCategory! ?? { id: `cat_${Date.now()}`, name: '', iconName: '' }, options: updatedOptions });
-                             }
-                          }}
-                          className="text-gold-500 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:underline"
-                        >
-                           <Plus className="w-4 h-4" />
-                           إضافة خيار جديد
-                        </button>
-                        <h4 className="text-lg font-black text-white">الخيارات المتاحة</h4>
+                     <div className="flex justify-end items-center">
+                        <h4 className="text-lg font-black text-white mb-2">إدارة الخيارات (الخامات/الموديلات)</h4>
+                     </div>
+                     
+                     <div className="bg-egypt-black/50 p-6 rounded-[2rem] border border-gold-500/20 space-y-4">
+                        <h5 className="text-gold-500 text-xs font-black uppercase tracking-widest text-right">إضافة خيار جديد</h5>
+                        <div className="flex flex-col gap-4">
+                           <input 
+                             type="text" 
+                             value={newOptName} 
+                             onChange={e => setNewOptName(e.target.value)} 
+                             placeholder="اسم الخيار (مثال: رخام إيطالي)" 
+                             className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-3 px-4 text-white text-right" 
+                           />
+                           <ImageInput value={newOptImg} onChange={setNewOptImg} />
+                           <button 
+                             type="button" 
+                             onClick={() => {
+                               if (newOptName && newOptImg) {
+                                  const updatedOptions = [...(editingCategory?.options || []), {
+                                     id: `opt_${Date.now()}`,
+                                     name: newOptName,
+                                     image: newOptImg
+                                  }];
+                                  setEditingCategory({ ...editingCategory! ?? { id: `cat_${Date.now()}`, name: '', iconName: '' }, options: updatedOptions });
+                                  setNewOptName('');
+                                  setNewOptImg('');
+                               }
+                             }} 
+                             className="bg-gold-500/10 text-gold-500 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all"
+                           >
+                             إضافة الخيار
+                           </button>
+                        </div>
                      </div>
                      
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -773,9 +884,9 @@ export function AdminPanel({
                                       const updatedOptions = editingCategory.options.filter((_: any, i: number) => i !== idx);
                                       setEditingCategory({ ...editingCategory, options: updatedOptions });
                                    }}
-                                   className="text-red-500 text-[10px] font-black uppercase mt-1 hover:underline"
+                                   className="text-red-500 text-[10px] font-black uppercase mt-1 hover:underline flex items-center gap-1 justify-end w-full"
                                  >
-                                    حذف
+                                    حذف <Trash2 className="w-3 h-3" />
                                  </button>
                               </div>
                            </div>

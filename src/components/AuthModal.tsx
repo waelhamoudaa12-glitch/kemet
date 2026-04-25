@@ -18,7 +18,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
   const formatEmail = (phone: string) => {
     // If it's the admin ID, use it directly as the email local part
-    if (phone === 'WaelWeza123123') return 'WaelWeza123123@kemet.app';
+    if (phone.trim().toLowerCase() === 'waelweza123123') return 'waelweza123123@kemet.app';
     // For normal phone numbers, strip non-digits
     const cleaned = phone.replace(/\D/g, '');
     return `${cleaned}@kemet.app`;
@@ -43,7 +43,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           uid: userCredential.user.uid,
           phoneNumber: phoneNumber,
           displayName: displayName,
-          isAdmin: phoneNumber === 'WaelWeza123123', // Admin check
+          isAdmin: phoneNumber.trim().toLowerCase() === 'waelweza123123', // Admin check
           createdAt: serverTimestamp(),
           lastUpdated: serverTimestamp()
         });
@@ -72,7 +72,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               uid: userCredential.user.uid,
               phoneNumber: phoneNumber,
               displayName: displayName || 'مستخدم جديد',
-              isAdmin: phoneNumber === 'WaelWeza123123',
+              isAdmin: phoneNumber.trim().toLowerCase() === 'waelweza123123',
               createdAt: serverTimestamp(),
               lastUpdated: serverTimestamp()
             });
