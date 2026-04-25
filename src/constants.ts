@@ -13,7 +13,7 @@ export const STYLES: Style[] = [
     id: 'classic',
     name: 'كلاسيك (Classic)',
     description: 'تفاصيل معمارية أنيقة، إضاءة دافئة، وفخامة خالدة تعكس الرقي.',
-    image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1513519245088-0e12902e35a38?auto=format&fit=crop&q=80&w=800',
   },
   {
     id: 'neoclassic',

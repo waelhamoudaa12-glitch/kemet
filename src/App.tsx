@@ -40,8 +40,7 @@ type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'myde
 
 interface Selection {
   style: string;
-  category: string;
-  option: string;
+  [categoryId: string]: string | string[];
 }
 
 // --- Components ---
@@ -54,7 +53,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<AppState>('home');
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
-  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [selections, setSelections] = useState<Record<string, string | string[]>>({});
   const [heroImageIndex, setHeroImageIndex] = useState(0);
 
   const heroImages = [
@@ -129,22 +128,26 @@ export default function App() {
       return;
     }
     setSelectedStyle(styleId);
-    const newSelections = { ...selections, style: styleId };
+    const newSelections = { style: styleId };
     setSelections(newSelections);
     saveSelection(newSelections);
+    setCurrentCategoryIndex(0);
     setCurrentPage('configurator');
   };
 
   const handleOptionSelect = (catId: string, optionId: string) => {
-    const newSelections = { ...selections, [catId]: optionId };
+    const currentSelections = selections[catId] as string[] || [];
+    let newCategorySelections: string[];
+
+    if (currentSelections.includes(optionId)) {
+      newCategorySelections = currentSelections.filter(id => id !== optionId);
+    } else {
+      newCategorySelections = [...currentSelections, optionId];
+    }
+
+    const newSelections = { ...selections, [catId]: newCategorySelections };
     setSelections(newSelections);
     saveSelection(newSelections);
-    
-    if (currentCategoryIndex < CATEGORIES.length - 1) {
-      setCurrentCategoryIndex(prev => prev + 1);
-    } else {
-      setCurrentPage('summary');
-    }
   };
 
   const reset = () => {
@@ -373,6 +376,7 @@ export default function App() {
             </motion.div>
           )}
 
+
           {currentPage === 'styles' && (
             <motion.div 
               key="styles"
@@ -486,7 +490,11 @@ export default function App() {
                           <p className="text-xs uppercase tracking-widest font-bold mb-0.5 opacity-60">القسم {idx + 1}</p>
                           <p className="text-sm">{cat.name}</p>
                         </div>
-                        {selections[cat.id] && <CheckCircle2 className="w-4 h-4 text-blue-600" />}
+                        {Array.isArray(selections[cat.id]) && (selections[cat.id] as string[]).length > 0 && (
+                          <div className="bg-blue-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                            {(selections[cat.id] as string[]).length}
+                          </div>
+                        )}
                       </button>
                     ))}
                   </nav>
@@ -531,7 +539,7 @@ export default function App() {
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleOptionSelect(CATEGORIES[currentCategoryIndex].id, option.id)}
                           className={`group relative text-right flex flex-row items-stretch rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 min-h-[160px] ${
-                            selections[CATEGORIES[currentCategoryIndex].id] === option.id 
+                            Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id)
                               ? 'border-blue-600 ring-8 ring-blue-50 shadow-2xl scale-[1.02]' 
                               : 'border-transparent bg-gray-50'
                           }`}
@@ -549,7 +557,7 @@ export default function App() {
                                 style={{ backgroundColor: option.color }}
                               />
                             )}
-                            {selections[CATEGORIES[currentCategoryIndex].id] === option.id && (
+                            {Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id) && (
                               <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-[2px] flex items-center justify-center">
                                 <div className="bg-blue-600 text-white p-3 rounded-full shadow-2xl scale-75">
                                   <CheckCircle2 className="w-6 h-6" />
@@ -589,7 +597,7 @@ export default function App() {
                       </div>
 
                       <button 
-                        disabled={!selections[CATEGORIES[currentCategoryIndex].id]}
+                        disabled={!Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) || (selections[CATEGORIES[currentCategoryIndex].id] as string[]).length === 0}
                         onClick={() => {
                           if (currentCategoryIndex < CATEGORIES.length - 1) {
                             setCurrentCategoryIndex(prev => prev + 1);
@@ -643,8 +651,8 @@ export default function App() {
                 <>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {CATEGORIES.map((cat: Category, idx) => {
-                      const selectionId = selections[cat.id];
-                      const option = cat.options.find(o => o.id === selectionId);
+                      const selectionIds = selections[cat.id] as string[] || [];
+                      const selectedOptions = cat.options.filter(o => selectionIds.includes(o.id));
                       
                       return (
                         <motion.div
@@ -652,46 +660,45 @@ export default function App() {
                           initial={{ opacity: 0, y: 30 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.1 }}
-                          className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-row items-stretch min-h-[160px]"
+                          className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col"
                         >
-                          <div className="w-1/3 md:w-2/5 shrink-0 overflow-hidden bg-gray-50 relative">
-                            {option ? (
-                              <>
-                                <img 
-                                  src={option.image} 
-                                  alt={option.name} 
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                                  referrerPolicy="no-referrer"
-                                />
-                                {option.color && (
-                                  <div 
-                                    className="absolute bottom-4 left-4 w-8 h-8 rounded-lg border-4 border-white shadow-2xl" 
-                                    style={{ backgroundColor: option.color }} 
+                          <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                             <div className="flex items-center gap-2">
+                                <cat.icon className="w-5 h-5 text-blue-600" />
+                                <span className="text-sm text-blue-600 font-black uppercase tracking-widest">{cat.name}</span>
+                             </div>
+                             <span className="bg-blue-600 text-white text-[10px] px-2 py-1 rounded-full font-bold">
+                               {selectedOptions.length} اختيارات
+                             </span>
+                          </div>
+
+                          <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {selectedOptions.length > 0 ? (
+                              selectedOptions.map(option => (
+                                <div key={option.id} className="relative group/opt aspect-square rounded-2xl overflow-hidden border border-gray-100">
+                                  <img 
+                                    src={option.image} 
+                                    alt={option.name}
+                                    className="w-full h-full object-cover group-hover/opt:scale-110 transition-transform"
+                                    referrerPolicy="no-referrer"
                                   />
-                                )}
-                              </>
+                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3 opacity-0 group-hover/opt:opacity-100 transition-opacity">
+                                    <p className="text-[10px] text-white font-bold leading-tight">{option.name}</p>
+                                  </div>
+                                  {option.color && (
+                                    <div 
+                                      className="absolute top-2 left-2 w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                                      style={{ backgroundColor: option.color }}
+                                    />
+                                  )}
+                                </div>
+                              ))
                             ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
-                                <cat.icon className="w-6 h-6 opacity-20" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-50">لم يتم الاختيار</span>
+                              <div className="col-span-full py-8 text-center text-gray-300">
+                                <p className="text-xs font-bold uppercase tracking-widest">لم يتم اختيار أي عنصر</p>
                               </div>
                             )}
                           </div>
-                          <div className="p-8 flex-1 border-r border-gray-50 flex flex-col justify-center">
-                            <div className="flex justify-between items-center mb-2">
-                               <div className="flex items-center gap-2">
-                                  <cat.icon className="w-4 h-4 text-blue-600" />
-                                  <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">{cat.name}</span>
-                               </div>
-                               <span className="text-[10px] font-mono text-gray-200">#0{idx + 1}</span>
-                            </div>
-                            <h3 className="text-xl md:text-2xl font-black">{option?.name || 'قيد الانتظار'}</h3>
-                          </div>
-                          {option && (
-                            <div className="absolute top-4 right-4 bg-blue-600 text-white p-2 rounded-xl shadow-xl">
-                              <CheckCircle2 className="w-4 h-4" />
-                            </div>
-                          )}
                         </motion.div>
                       );
                     })}
@@ -750,17 +757,28 @@ export default function App() {
 
                       <div className="space-y-6 flex-1">
                         {CATEGORIES.map((cat, idx) => {
-                          const optionId = selections[cat.id];
-                          const option = cat.options.find(o => o.id === optionId);
+                          const selectionIds = selections[cat.id] as string[] || [];
+                          const selectedOptions = cat.options.filter(o => selectionIds.includes(o.id));
+                          
                           return (
-                            <div key={cat.id} className="flex justify-between items-center py-4 border-b border-gray-50 group hover:px-2 transition-all">
-                               <div className="flex items-center gap-4">
-                                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                            <div key={cat.id} className="flex justify-between items-start py-4 border-b border-gray-50 group hover:px-2 transition-all">
+                               <div className="flex items-start gap-4">
+                                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors mt-1">
                                      <cat.icon className="w-4 h-4" />
                                   </div>
                                   <div>
-                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">{cat.name}</p>
-                                     <p className="font-bold text-lg leading-none">{option?.name || 'لم يتم الاختيار'}</p>
+                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-2">{cat.name}</p>
+                                     <div className="flex flex-wrap gap-2">
+                                       {selectedOptions.length > 0 ? (
+                                         selectedOptions.map(opt => (
+                                           <span key={opt.id} className="bg-gray-50 px-3 py-1 rounded-full text-xs font-bold border border-gray-100">
+                                              {opt.name}
+                                           </span>
+                                         ))
+                                       ) : (
+                                         <span className="text-gray-300 text-xs italic">لا توجد اختيارات</span>
+                                       )}
+                                     </div>
                                   </div>
                                </div>
                                <span className="text-[10px] font-mono text-gray-200">#{idx + 1}</span>
