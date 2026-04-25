@@ -4,6 +4,7 @@ import { db, auth } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles, Search, ChevronLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { STYLES, CATEGORIES } from '../constants';
+import { Category, Option } from '../types';
 
 export function AdminPanel({ onClose }: { onClose: () => void }) {
   const [users, setUsers] = useState<any[]>([]);
@@ -135,9 +136,9 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   </div>
 
                   {/* Selections Breakdown */}
-                  {CATEGORIES.map((cat) => {
+                  {CATEGORIES.map((cat: Category) => {
                     const selectedOptionId = selectedUser.selections?.[cat.id];
-                    const option = cat.options.find(o => o.id === selectedOptionId);
+                    const option = cat.options.find((o: Option) => o.id === selectedOptionId);
                     
                     if (!option) return null;
 

@@ -16,6 +16,7 @@ import { auth, db } from './lib/firebase';
 import { STYLES, CATEGORIES } from './constants';
 import { AuthModal } from './components/AuthModal';
 import { AdminPanel } from './components/AdminPanel';
+import { Category, Option } from './types';
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -41,18 +42,6 @@ interface Selection {
   style: string;
   category: string;
   option: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  icon: any;
-  options: {
-    id: string;
-    name: string;
-    image: string;
-    color?: string;
-  }[];
 }
 
 // --- Components ---
@@ -168,100 +157,96 @@ export default function App() {
   const navItems = [
     { id: 'home', label: 'الرئيسية' },
     { id: 'about', label: 'عنا' },
-    { id: 'styles', label: 'ابدأ التصميم' },
     ...(user ? [{ id: 'mydesign', label: 'تصميمي' }] : []),
   ];
 
   return (
-    <div className="min-h-screen bg-white font-sans text-brand-primary flex flex-row-reverse">
-      {/* Persistent Sidebar */}
-      <motion.aside 
-        initial={{ x: 100 }} 
-        animate={{ x: 0 }}
-        className="fixed top-0 right-0 bottom-0 w-20 lg:w-64 bg-white border-l border-border-light z-50 flex flex-col items-center py-12"
+    <div className="min-h-screen bg-white font-sans text-brand-primary flex flex-col">
+      {/* Top Navigation Header */}
+      <motion.header 
+        initial={{ y: -100 }} 
+        animate={{ y: 0 }} 
+        className="fixed top-0 left-0 right-0 h-20 md:h-24 bg-white border-b border-gray-100 z-50 flex items-center justify-between px-4 md:px-12 shadow-sm"
       >
-        <div className="mb-20 cursor-pointer" onClick={() => setCurrentPage('home')}>
-           <h1 className="text-xl lg:text-3xl font-black tracking-tighter uppercase whitespace-nowrap">
-             <span className="md:inline">Ke</span><span className="text-blue-600">met</span>
+        <div className="flex items-center cursor-pointer shrink-0" onClick={() => setCurrentPage('home')}>
+           <h1 className="text-xl md:text-3xl font-black tracking-tighter uppercase whitespace-nowrap">
+             <span>Ke</span><span className="text-blue-600">met</span>
            </h1>
         </div>
 
-        <nav className="flex-1 flex flex-col gap-10 w-full px-4 lg:px-8">
-            {navItems.map(item => (
-                <button 
-                    key={item.id}
-                    onClick={() => {
-                        if (item.id === 'styles') {
-                            if (!user) {
+        <div className="flex items-center gap-2 md:gap-8 flex-1 justify-end overflow-hidden">
+          <nav className="flex items-center gap-3 md:gap-8 lg:gap-12 mx-2 md:mx-4 overflow-x-auto no-scrollbar py-2">
+              {navItems.map(item => (
+                  <button 
+                      key={item.id}
+                      onClick={() => {
+                          if (item.id === 'home' || item.id === 'about') {
+                              setCurrentPage(item.id as AppState);
+                          } else if (item.id === 'mydesign') {
+                               if (!user) {
                                 setIsAuthModalOpen(true);
-                            } else {
-                                setCurrentPage('styles');
-                            }
-                        } else {
-                            setCurrentPage(item.id as AppState);
-                        }
-                    }}
-                    className={`flex items-center gap-4 group transition-all ${
-                        currentPage === item.id ? 'text-blue-600' : 'text-gray-400 hover:text-black'
-                    }`}
-                >
-                    <div className={`w-2 h-2 rounded-full transition-all ${currentPage === item.id ? 'bg-blue-600 scale-125' : 'bg-transparent group-hover:bg-gray-200'}`} />
-                    <span className="text-[10px] lg:text-sm font-bold uppercase tracking-widest block">{item.label}</span>
-                </button>
-            ))}
-            
-            <div className="mt-4 border-t border-border-light pt-8 flex flex-col gap-4">
-                {user ? (
-                    <>
-                        <div className="text-[10px] uppercase font-bold text-gray-300 tracking-tighter block overflow-hidden text-ellipsis whitespace-nowrap text-right">
-                            {user.displayName || user.phoneNumber}
-                        </div>
-                        {isAdmin && (
-                            <button 
-                                onClick={() => setIsAdminPanelOpen(true)}
-                                className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest text-right flex items-center justify-end gap-2"
-                            >
-                                <Lock className="w-3 h-3" />
-                                لوحة الإدارة
-                            </button>
-                        )}
-                        <button 
-                            onClick={() => signOut(auth)}
-                            className="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-widest text-right"
-                        >
-                            خروج
-                        </button>
-                    </>
-                ) : (
-                    <button 
-                        onClick={() => setIsAuthModalOpen(true)}
-                        className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest text-right"
-                    >
-                        دخول
-                    </button>
-                )}
-            </div>
-        </nav>
+                                return;
+                              }
+                              setCurrentPage(item.id as AppState);
+                          }
+                      }}
+                      className={`flex items-center gap-1 group transition-all relative py-1 shrink-0 ${
+                          currentPage === item.id ? 'text-blue-600' : 'text-gray-400 hover:text-black'
+                      }`}
+                  >
+                      <span className="text-[10px] md:text-sm font-bold uppercase tracking-widest block whitespace-nowrap">{item.label}</span>
+                      <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 transition-all ${currentPage === item.id ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0 group-hover:opacity-100'}`} />
+                  </button>
+              ))}
+          </nav>
 
-        <div className="mt-auto">
-            <button 
-                onClick={() => {
-                    if (!user) {
-                        setIsAuthModalOpen(true);
-                    } else {
-                        setCurrentPage('styles');
-                    }
-                }}
-                className="w-14 h-14 lg:w-48 lg:h-auto bg-black text-white lg:py-5 flex items-center justify-center gap-3 lg:text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-xl"
-            >
-                <span className="hidden lg:inline">تصميم جديد</span>
-                <Palette className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
+              <button 
+                onClick={() => setCurrentPage('styles')}
+                className={`bg-blue-600 text-white px-3 md:px-8 py-1.5 md:py-3 rounded-full hover:bg-blue-700 transition-all shadow-lg active:scale-95 shrink-0 flex items-center gap-2 ${currentPage === 'styles' ? 'ring-4 ring-blue-100' : ''}`}
+              >
+                <span className="text-[9px] md:text-base font-black uppercase tracking-tight whitespace-nowrap">ابدأ التصميم</span>
+              </button>
+
+              <div className="h-8 w-px bg-gray-100 mx-1 hidden sm:block"></div>
+
+              {user ? (
+                  <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                      <div className="hidden lg:block text-[10px] uppercase font-bold text-gray-400 tracking-tighter text-right max-w-[80px] truncate">
+                          {user.displayName || user.phoneNumber}
+                      </div>
+                      {isAdmin && (
+                          <button 
+                              onClick={() => setIsAdminPanelOpen(true)}
+                              className="text-[10px] md:text-sm font-bold text-blue-600 hover:text-blue-800 border border-blue-200 p-2 md:px-4 md:py-2 rounded-full bg-blue-50 flex items-center transition-all"
+                          >
+                              <Lock className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                              <span className="hidden md:inline">إدارة</span>
+                          </button>
+                      )}
+                      <button 
+                          onClick={() => signOut(auth)}
+                          className="text-[10px] md:text-sm font-bold text-red-500 hover:text-red-700 border border-red-100 p-2 md:px-4 md:py-2 rounded-full bg-red-50/50 transition-all"
+                      >
+                          <span className="md:hidden">X</span>
+                          <span className="hidden md:inline">خروج</span>
+                      </button>
+                  </div>
+              ) : (
+                  <button 
+                      onClick={() => setIsAuthModalOpen(true)}
+                      className="text-[10px] md:text-sm font-bold text-blue-600 hover:text-blue-800 border border-blue-200 px-4 md:px-6 py-2 md:py-2.5 rounded-full hover:bg-blue-50 transition-all"
+                  >
+                      دخول
+                  </button>
+              )}
+          </div>
         </div>
-      </motion.aside>
+      </motion.header>
+
 
       {/* Main Content Area */}
-      <main className="flex-1 pr-20 lg:pr-64">
+      <main className="flex-1 pt-20 md:pt-24">
         <AnimatePresence mode="wait">
           {currentPage === 'home' && (
             <motion.div 
@@ -394,15 +379,23 @@ export default function App() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="max-w-7xl mx-auto px-6 py-24"
+              className="max-w-7xl mx-auto px-6 py-12 lg:py-24"
             >
-              <div className="mb-12 md:mb-20">
-                <span className="text-blue-600 font-bold uppercase tracking-[0.3em] text-xs mb-4 block">كتالوج الخيارات</span>
-                <h2 className="text-3xl md:text-5xl lg:text-7xl mb-6 font-light">اختر <span className="font-bold">الستايل المفضل</span></h2>
-                <div className="w-16 md:w-24 h-1 bg-black"></div>
+              <div className="mb-12 lg:mb-20">
+                <motion.span 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-blue-600 font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs mb-4 block"
+                >
+                  الخطوة الأولى: اختيار النمط
+                </motion.span>
+                <h2 className="text-4xl md:text-6xl lg:text-8xl mb-8 font-light tracking-tight leading-none">
+                  اختر <span className="font-bold">طرازك المفضل</span>
+                </h2>
+                <div className="w-24 h-1.5 bg-black"></div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
                 {STYLES.map((style, idx) => (
                   <motion.div
                     key={style.id}
@@ -410,20 +403,29 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
                     onClick={() => handleSelectStyle(style.id)}
-                    className="cursor-pointer group bg-white border border-border-light shadow-sm"
+                    className="cursor-pointer group flex flex-row items-stretch bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
                   >
-                    <div className="aspect-[4/5] overflow-hidden transition-all duration-700">
+                    <div className="w-2/5 shrink-0 overflow-hidden relative">
                       <img 
                         src={style.image} 
                         alt={style.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                         referrerPolicy="no-referrer"
                       />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center p-4">
+                        <div className="bg-white text-black p-4 rounded-full shadow-2xl">
+                          <ArrowRight className="w-6 h-6 -rotate-45" />
+                        </div>
+                      </div>
                     </div>
-                    <div className="p-8">
-                      <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mb-1 block">Style {idx+1}</span>
-                      <h3 className="text-2xl font-bold mb-3">{style.name}</h3>
-                      <p className="text-gray-400 font-light text-sm leading-relaxed">{style.description}</p>
+                    <div className="p-8 flex-1 flex flex-col justify-center">
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-2xl md:text-3xl font-black">{style.name}</h3>
+                        <span className="text-[10px] font-mono text-gray-300 font-bold">MODE 0{idx+1}</span>
+                      </div>
+                      <p className="text-gray-500 font-medium text-sm md:text-base leading-relaxed">
+                        {style.description}
+                      </p>
                     </div>
                   </motion.div>
                 ))}
@@ -437,124 +439,174 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col lg:flex-row h-screen"
+              className="flex flex-col h-screen overflow-hidden"
             >
-              {/* Context Sidebar (Section specific) */}
-              <div className="hidden lg:flex w-80 editorial-sidebar p-10 flex-col gap-6 overflow-y-auto">
-                <div className="mb-12 border-b border-border-light pb-8">
-                  <span className="text-[10px] uppercase tracking-[0.4em] text-gray-400 block mb-2">التصنيف الحالي</span>
-                  <p className="text-lg font-bold">{STYLES.find(s => s.id === selectedStyle)?.name}</p>
-                </div>
-                <div className="flex flex-col gap-4">
-                  {CATEGORIES.map((cat, idx) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setCurrentCategoryIndex(idx)}
-                      className={`flex items-center gap-6 p-2 text-right transition-all group ${
-                        currentCategoryIndex === idx 
-                          ? 'text-brand-primary font-bold' 
-                          : 'text-gray-400 font-light'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 flex items-center justify-center font-mono text-[10px] border transition-colors ${
-                         currentCategoryIndex === idx ? 'bg-black text-white border-black' : 'bg-gray-50 text-gray-400 border-gray-100'
-                      }`}>
-                          {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
-                      </div>
-                      <span className="flex-1 group-hover:text-black transition-colors">{cat.name}</span>
-                      {selections[cat.id] && <CheckCircle2 className="w-4 h-4 text-blue-600" />}
-                    </button>
-                  ))}
-                </div>
+              {/* Top Navigation for Mobile/Tablet */}
+              <div className="lg:hidden bg-white border-b border-gray-100 px-6 py-4 flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                {CATEGORIES.map((cat, idx) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setCurrentCategoryIndex(idx)}
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                      currentCategoryIndex === idx 
+                        ? 'bg-black text-white' 
+                        : 'bg-gray-50 text-gray-400'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
               </div>
 
-              {/* Content Area */}
-              <div className="flex-1 p-8 lg:p-16 overflow-y-auto bg-white">
-                <motion.div
-                  key={currentCategoryIndex}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="max-w-6xl mx-auto"
-                >
-                  <div className="mb-12 lg:mb-16">
-                    <span className="bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-6 inline-block">
-                      KEMET Selection
-                    </span>
-                    <h2 className="text-3xl md:text-5xl lg:text-7xl font-light leading-tight mb-4">اختيار <span className="font-bold">{CATEGORIES[currentCategoryIndex].name}</span></h2>
-                    <p className="text-gray-400 text-sm md:text-lg lg:text-xl font-light italic">تفاصيل تعكس فخامة اختيارك لنمط {STYLES.find(s => s.id === selectedStyle)?.name}</p>
+              <div className="flex flex-1 overflow-hidden">
+                {/* Desktop Category Sidebar */}
+                <div className="hidden lg:flex w-80 bg-gray-50/50 border-l border-gray-100 p-10 flex-col gap-8 overflow-y-auto">
+                  <div className="mb-10">
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600 block mb-3">النمط المختار</span>
+                    <h3 className="text-2xl font-black">{STYLES.find(s => s.id === selectedStyle)?.name}</h3>
                   </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {CATEGORIES[currentCategoryIndex].options.map((option) => (
-                      <motion.div
-                        key={option.id}
-                        onClick={() => handleOptionSelect(CATEGORIES[currentCategoryIndex].id, option.id)}
-                        className={`group cursor-pointer bg-white transition-all duration-500 relative border-t-4 ${
-                          selections[CATEGORIES[currentCategoryIndex].id] === option.id 
-                            ? 'border-black shadow-xl' 
-                            : 'border-transparent'
+                  
+                  <nav className="space-y-4">
+                    {CATEGORIES.map((cat, idx) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setCurrentCategoryIndex(idx)}
+                        className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                          currentCategoryIndex === idx 
+                            ? 'bg-white shadow-lg text-black font-black' 
+                            : 'text-gray-400 hover:text-gray-600'
                         }`}
                       >
-                        <div className="aspect-[3/4] relative overflow-hidden bg-gray-50">
-                          <img 
-                            src={option.image} 
-                            alt={option.name} 
-                            className="w-full h-full object-cover transition-all duration-700"
-                            referrerPolicy="no-referrer"
-                          />
-                           {option.color && (
-                            <div 
-                              className="absolute top-6 left-6 w-10 h-10 border-2 border-white shadow-xl flex items-center justify-center font-bold text-[10px] overflow-hidden"
-                              style={{ backgroundColor: option.color }}
-                            >
-                               <div className="w-1 h-full bg-white/20 rotate-45"></div>
-                            </div>
-                          )}
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                          currentCategoryIndex === idx ? 'bg-black text-white' : 'bg-gray-100 text-gray-400'
+                        }`}>
+                          <cat.icon className="w-5 h-5" />
                         </div>
-                        <div className="py-6 flex justify-between items-center bg-white border-x border-b border-border-light px-6">
-                          <div>
-                              <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">KEMET Choice</p>
-                              <span className="text-2xl font-bold">{option.name}</span>
-                          </div>
-                          {selections[CATEGORIES[currentCategoryIndex].id] === option.id && <CheckCircle2 className="w-6 h-6 text-black" />}
+                        <div className="flex-1 text-right">
+                          <p className="text-xs uppercase tracking-widest font-bold mb-0.5 opacity-60">القسم {idx + 1}</p>
+                          <p className="text-sm">{cat.name}</p>
                         </div>
-                      </motion.div>
+                        {selections[cat.id] && <CheckCircle2 className="w-4 h-4 text-blue-600" />}
+                      </button>
                     ))}
-                  </div>
+                  </nav>
 
-                  <div className="mt-20 flex justify-between items-center border-t border-border-light pt-12 mb-12">
-                    <button 
-                      disabled={currentCategoryIndex === 0}
-                      onClick={() => setCurrentCategoryIndex(prev => prev - 1)}
-                      className="group flex items-center gap-4 text-gray-400 hover:text-black transition-colors disabled:opacity-20"
-                    >
-                      <ChevronRight className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-                      <span className="text-xs font-bold uppercase tracking-[0.3em]">القسم السابق</span>
-                    </button>
-                    
-                    <div className="flex gap-4">
-                        {CATEGORIES.map((_, i) => (
-                            <div key={i} className={`h-[2px] transition-all duration-500 ${i === currentCategoryIndex ? 'w-12 bg-black' : 'w-6 bg-gray-100'}`} />
-                        ))}
+                  <div className="mt-auto p-6 bg-blue-50 rounded-3xl">
+                    <p className="text-blue-700 text-xs font-bold leading-relaxed">
+                      نحن نوفر أفضل الخامات والضمانات لكل اختيار تقوم به.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Main Configurator Area */}
+                <div className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-20 bg-white">
+                  <motion.div
+                    key={currentCategoryIndex}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="max-w-5xl mx-auto"
+                  >
+                    <header className="mb-12 lg:mb-16">
+                      <div className="flex items-center gap-2 text-blue-600 mb-4">
+                        {(() => {
+                           const Icon = CATEGORIES[currentCategoryIndex].icon;
+                           return <Icon className="w-5 h-5" />;
+                        })()}
+                        <span className="text-xs font-black uppercase tracking-[0.3em]">
+                          {CATEGORIES[currentCategoryIndex].name}
+                        </span>
+                      </div>
+                      <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">
+                        اختر <span className="text-gray-300 font-light underline decoration-blue-600 underline-offset-[12px]">{CATEGORIES[currentCategoryIndex].name}</span>
+                      </h2>
+                      <p className="text-gray-500 text-sm md:text-lg max-w-2xl leading-relaxed">
+                        اختر ما يناسب ذوقك وتطلعاتك، نحن نضمن لك الجودة والجمال في كل قطعة.
+                      </p>
+                    </header>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
+                      {CATEGORIES[currentCategoryIndex].options.map((option) => (
+                        <motion.button
+                          key={option.id}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleOptionSelect(CATEGORIES[currentCategoryIndex].id, option.id)}
+                          className={`group relative text-right flex flex-row items-stretch rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 min-h-[160px] ${
+                            selections[CATEGORIES[currentCategoryIndex].id] === option.id 
+                              ? 'border-blue-600 ring-8 ring-blue-50 shadow-2xl scale-[1.02]' 
+                              : 'border-transparent bg-gray-50'
+                          }`}
+                        >
+                          <div className="w-1/3 md:w-2/5 shrink-0 relative overflow-hidden">
+                            <img 
+                              src={option.image} 
+                              alt={option.name} 
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                              referrerPolicy="no-referrer"
+                            />
+                            {option.color && (
+                              <div 
+                                className="absolute top-4 left-4 w-10 h-10 rounded-xl border-4 border-white shadow-2xl"
+                                style={{ backgroundColor: option.color }}
+                              />
+                            )}
+                            {selections[CATEGORIES[currentCategoryIndex].id] === option.id && (
+                              <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-[2px] flex items-center justify-center">
+                                <div className="bg-blue-600 text-white p-3 rounded-full shadow-2xl scale-75">
+                                  <CheckCircle2 className="w-6 h-6" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="p-6 md:p-8 flex flex-col justify-center flex-1">
+                            <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1 opacity-60">تطوير KEMET</p>
+                            <h4 className="text-xl md:text-2xl font-black leading-tight">{option.name}</h4>
+                            <p className="text-xs text-gray-400 mt-2 font-medium">مواصفات عالية الجودة</p>
+                          </div>
+                        </motion.button>
+                      ))}
                     </div>
 
-                    <button 
-                      disabled={!selections[CATEGORIES[currentCategoryIndex].id]}
-                      onClick={() => {
+                    <footer className="mt-24 pb-12 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-gray-100 pt-12">
+                      <button 
+                        disabled={currentCategoryIndex === 0}
+                        onClick={() => setCurrentCategoryIndex(prev => prev - 1)}
+                        className="flex items-center gap-4 text-gray-400 hover:text-black transition-all disabled:opacity-30 px-6 py-3 rounded-2xl hover:bg-gray-50"
+                      >
+                        <ChevronRight className="w-6 h-6" />
+                        <span className="text-xs font-bold uppercase tracking-widest">تراجع</span>
+                      </button>
+                      
+                      <div className="flex gap-3">
+                        {CATEGORIES.map((_, i) => (
+                          <div 
+                            key={i} 
+                            className={`h-1.5 rounded-full transition-all duration-500 ${
+                              i === currentCategoryIndex ? 'w-12 bg-blue-600' : 'w-3 bg-gray-100'
+                            }`} 
+                          />
+                        ))}
+                      </div>
+
+                      <button 
+                        disabled={!selections[CATEGORIES[currentCategoryIndex].id]}
+                        onClick={() => {
                           if (currentCategoryIndex < CATEGORIES.length - 1) {
-                               setCurrentCategoryIndex(prev => prev + 1);
+                            setCurrentCategoryIndex(prev => prev + 1);
                           } else {
-                              setCurrentPage('summary');
+                            setCurrentPage('summary');
                           }
-                      }}
-                      className="group flex items-center gap-4 text-black font-black disabled:opacity-20"
-                    >
-                      <span className="text-xs font-bold uppercase tracking-[0.3em]">القسم التالي</span>
-                      <ChevronLeft className="w-6 h-6 group-hover:-rotate-12 transition-transform" />
-                    </button>
-                  </div>
-                </motion.div>
+                        }}
+                        className="group flex items-center gap-6 bg-black text-white px-10 py-5 rounded-2xl font-black transition-all disabled:opacity-30 shadow-xl hover:bg-gray-800"
+                      >
+                        <span className="text-xs uppercase tracking-widest">
+                          {currentCategoryIndex < CATEGORIES.length - 1 ? 'القسم التالي' : 'عرض الملخص'}
+                        </span>
+                        <ChevronLeft className="w-6 h-6 group-hover:-translate-x-2 transition-transform" />
+                      </button>
+                    </footer>
+                  </motion.div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -565,73 +617,111 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="min-h-screen py-24 px-8 lg:px-24 max-w-7xl"
+              className="min-h-screen py-24 px-8 lg:px-24 max-w-7xl mx-auto"
             >
-              <div className="mb-12 md:mb-16">
-                 <span className="text-blue-600 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8">My Creations</span>
-                 <h2 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">تصميمي الخاص</h2>
-                 <p className="text-gray-400 text-sm md:text-xl font-light italic">هذا هو اختيارك الذي تم حفظه لنمط {STYLES.find(s => s.id === selections.style)?.name || '---'}</p>
+              <div className="mb-16 md:mb-24">
+                 <span className="text-blue-600 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8 decoration-2">Personal Selection</span>
+                 <h2 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-[0.9]">تصميمي <br/><span className="text-gray-200">الخاص</span></h2>
+                 <p className="text-gray-400 text-sm md:text-xl font-medium max-w-2xl leading-relaxed italic">
+                    هذا هو ذوقك الذي يعبر عنك بناءً على طراز {STYLES.find(s => s.id === selections.style)?.name || 'الذي لم يتم تحديده بعد'}. يمكنك استعراض اختياراتك أو البدء من جديد.
+                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                {CATEGORIES.map((cat, idx) => {
-                  const selectionId = selections[cat.id];
-                  const option = cat.options.find(o => o.id === selectionId);
-                  
-                  return (
-                    <motion.div
-                      key={cat.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="group bg-white border border-gray-100 shadow-sm relative overflow-hidden flex flex-col"
-                    >
-                      <div className="aspect-[3/2] overflow-hidden bg-gray-50">
-                        {option ? (
-                          <img 
-                            src={option.image} 
-                            alt={option.name} 
-                            className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold italic">
-                            لم يتم الاختيار بعد
+              {Object.keys(selections).length === 0 ? (
+                <div className="bg-gray-50 rounded-[3rem] p-12 md:p-24 text-center border-2 border-dashed border-gray-200">
+                   <Palette className="w-16 h-16 mx-auto mb-8 text-gray-300" />
+                   <h3 className="text-3xl font-black mb-4">لا توجد اختيارات بعد</h3>
+                   <p className="text-gray-500 mb-8 max-w-sm mx-auto">ابدأ رحلة تصميم منزلك الآن واختر أفضل الخامات والموديلات.</p>
+                   <button 
+                    onClick={() => setCurrentPage('styles')}
+                    className="bg-black text-white px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-800 transition-all shadow-xl"
+                   >
+                     ابدأ التصميم الآن
+                   </button>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    {CATEGORIES.map((cat: Category, idx) => {
+                      const selectionId = selections[cat.id];
+                      const option = cat.options.find(o => o.id === selectionId);
+                      
+                      return (
+                        <motion.div
+                          key={cat.id}
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                          className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-row items-stretch min-h-[160px]"
+                        >
+                          <div className="w-1/3 md:w-2/5 shrink-0 overflow-hidden bg-gray-50 relative">
+                            {option ? (
+                              <>
+                                <img 
+                                  src={option.image} 
+                                  alt={option.name} 
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                                  referrerPolicy="no-referrer"
+                                />
+                                {option.color && (
+                                  <div 
+                                    className="absolute bottom-4 left-4 w-8 h-8 rounded-lg border-4 border-white shadow-2xl" 
+                                    style={{ backgroundColor: option.color }} 
+                                  />
+                                )}
+                              </>
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
+                                <cat.icon className="w-6 h-6 opacity-20" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-50">لم يتم الاختيار</span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="p-8 border-t border-gray-100">
-                        <div className="flex justify-between items-center mb-2">
-                           <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">{cat.name}</span>
-                           <span className="text-[10px] font-mono text-gray-300">#0{idx + 1}</span>
-                        </div>
-                        <h3 className="text-2xl font-bold">{option?.name || 'قيد الانتظار'}</h3>
-                      </div>
-                      {option && (
-                        <div className="absolute top-4 right-4 bg-black text-white p-2 rounded-full shadow-xl">
-                          <CheckCircle2 className="w-4 h-4" />
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
+                          <div className="p-8 flex-1 border-r border-gray-50 flex flex-col justify-center">
+                            <div className="flex justify-between items-center mb-2">
+                               <div className="flex items-center gap-2">
+                                  <cat.icon className="w-4 h-4 text-blue-600" />
+                                  <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">{cat.name}</span>
+                               </div>
+                               <span className="text-[10px] font-mono text-gray-200">#0{idx + 1}</span>
+                            </div>
+                            <h3 className="text-xl md:text-2xl font-black">{option?.name || 'قيد الانتظار'}</h3>
+                          </div>
+                          {option && (
+                            <div className="absolute top-4 right-4 bg-blue-600 text-white p-2 rounded-xl shadow-xl">
+                              <CheckCircle2 className="w-4 h-4" />
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
 
-              <div className="mt-20 flex flex-col md:flex-row gap-6">
-                <button 
-                  onClick={() => setCurrentPage('styles')}
-                  className="flex-1 bg-black text-white py-6 font-bold tracking-[0.2em] uppercase text-sm hover:bg-gray-800 transition-all flex items-center justify-center gap-4"
-                >
-                  بدء تصميم جديد
-                  <ArrowRight className="w-5 h-5 rotate-180" />
-                </button>
-                <button 
-                  onClick={() => window.print()}
-                  className="flex-1 border-2 border-black py-6 font-bold tracking-[0.2em] uppercase text-sm hover:bg-black hover:text-white transition-all"
-                >
-                  طباعة التصميم
-                </button>
-              </div>
+                  <div className="mt-24 bg-black rounded-[3rem] p-12 md:p-20 text-white flex flex-col md:flex-row items-center justify-between gap-12 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    
+                    <div className="relative z-10 text-center md:text-right">
+                       <h3 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">هل أعجبك تصميمك؟</h3>
+                       <p className="text-gray-400 max-w-md font-medium text-lg">يمكنك الآن طباعة التصميم كملف PDF ومشاركته مع مهندس التنفيذ أو تعديل بعض الأجزاء.</p>
+                    </div>
+
+                    <div className="relative z-10 flex flex-col sm:flex-row gap-6 w-full md:w-auto">
+                      <button 
+                        onClick={() => window.print()}
+                        className="bg-blue-600 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-xl"
+                      >
+                        Print Summary
+                      </button>
+                      <button 
+                         onClick={() => setCurrentPage('styles')}
+                         className="bg-white text-black px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-100 transition-all shadow-xl"
+                      >
+                        New Design
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </motion.div>
           )}
 
@@ -640,44 +730,93 @@ export default function App() {
               key="summary"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="min-h-screen flex items-center justify-center p-8 bg-brand-secondary/50 pt-16"
+              className="min-h-screen py-16 px-6 lg:px-20 bg-gray-50/50 overflow-y-auto"
             >
-              <div className="bg-white max-w-5xl w-full p-12 lg:p-24 shadow-2xl relative border-t-8 border-black">
-                  <div className="flex flex-col lg:flex-row justify-between items-start mb-12 md:mb-20 gap-8">
-                    <div>
-                      <span className="text-blue-600 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8">Final Selection</span>
-                      <h2 className="text-4xl md:text-6xl font-black mb-4">ملخص تشطيبك</h2>
-                      <p className="text-gray-400 text-sm md:text-xl font-light italic">قائمة اختياراتك بناءً على طراز {STYLES.find(s => s.id === selectedStyle)?.name}</p>
-                    </div>
-                    <div className="bg-gray-50 p-8 border border-border-light text-center">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">KEMET Ticket</p>
-                        <p className="font-mono text-xl tracking-tighter">#KEMET-2024</p>
-                    </div>
-                  </div>
+              <div className="max-w-6xl mx-auto">
+                <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-gray-100 mb-12">
+                  <div className="flex flex-col lg:flex-row">
+                    {/* Left Side: Receipt Details */}
+                    <div className="flex-1 p-8 md:p-16 flex flex-col">
+                      <div className="flex justify-between items-start mb-12">
+                        <div>
+                          <span className="text-blue-600 font-bold uppercase tracking-[0.4em] text-[10px] md:text-xs mb-4 block underline underline-offset-8 decoration-2">KEMET Final Ticket</span>
+                          <h2 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter">ملخص <br/><span className="text-blue-600">اختياراتك</span></h2>
+                        </div>
+                        <div className="text-left hidden sm:block">
+                           <div className="w-16 h-16 border-4 border-black flex items-center justify-center font-black text-2xl mb-2">K</div>
+                           <p className="text-[10px] font-mono text-gray-300 font-bold">VERIFIED DESIGN</p>
+                        </div>
+                      </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-                      {CATEGORIES.map((cat, idx) => (
-                          <div key={cat.id} className="p-8 border border-border-light flex flex-col gap-4 bg-white hover:bg-gray-50 transition-colors">
-                              <div className="w-10 h-10 border border-black flex items-center justify-center font-mono text-xs">
-                                  {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
-                              </div>
-                              <div>
-                                  <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">{cat.name}</p>
-                                  <p className="text-xl font-bold">{cat.options.find(o => o.id === selections[cat.id])?.name || 'لم يتم الاختيار'}</p>
-                              </div>
-                          </div>
-                      ))}
-                  </div>
+                      <div className="space-y-6 flex-1">
+                        {CATEGORIES.map((cat, idx) => {
+                          const optionId = selections[cat.id];
+                          const option = cat.options.find(o => o.id === optionId);
+                          return (
+                            <div key={cat.id} className="flex justify-between items-center py-4 border-b border-gray-50 group hover:px-2 transition-all">
+                               <div className="flex items-center gap-4">
+                                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                     <cat.icon className="w-4 h-4" />
+                                  </div>
+                                  <div>
+                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">{cat.name}</p>
+                                     <p className="font-bold text-lg leading-none">{option?.name || 'لم يتم الاختيار'}</p>
+                                  </div>
+                               </div>
+                               <span className="text-[10px] font-mono text-gray-200">#{idx + 1}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                  <div className="flex flex-col md:flex-row gap-6">
-                      <button className="flex-1 bg-black text-white py-6 font-bold tracking-[0.2em] uppercase text-sm hover:bg-gray-800 transition-all flex items-center justify-center gap-4">
-                          تحميل ملف التصميم
-                          <ArrowRight className="w-5 h-5 rotate-180" />
-                      </button>
-                      <button onClick={() => setCurrentPage('styles')} className="flex-1 border-2 border-black py-6 font-bold tracking-[0.2em] uppercase text-sm hover:bg-black hover:text-white transition-all">
+                      <div className="mt-12 pt-12 border-t-2 border-dashed border-gray-100 flex flex-col sm:flex-row gap-6">
+                        <button 
+                          onClick={() => window.print()}
+                          className="flex-1 bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-800 transition-all flex items-center justify-center gap-4 shadow-xl"
+                        >
+                          تأكيد وتحميل PDF
+                          <ArrowRight className="w-5 h-5 opacity-50" />
+                        </button>
+                        <button 
+                          onClick={() => setCurrentCategoryIndex(0) || setCurrentPage('configurator')}
+                          className="flex-1 border-2 border-gray-100 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:border-black transition-all"
+                        >
                           تعديل الاختيارات
-                      </button>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Right Side: Visual Confirmation */}
+                    <div className="w-full lg:w-[45%] bg-blue-600 relative overflow-hidden flex flex-col p-8 md:p-16 text-white min-h-[400px]">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl opacity-50" />
+                        
+                        <div className="relative z-10 flex-1 flex flex-col justify-center text-center">
+                          <CheckCircle2 className="w-20 h-20 mx-auto mb-8 opacity-50 stroke-[1]" />
+                          <h3 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">جاهز للتنفيذ!</h3>
+                          <p className="text-blue-100 font-medium mb-12 max-w-sm mx-auto leading-relaxed">
+                            لقد قمت باختيار أفضل الخامات بناءً على نمط <br/>
+                            <span className="text-white font-black text-2xl">{STYLES.find(s => s.id === selectedStyle)?.name}</span>
+                          </p>
+                          
+                          <div className="bg-white/10 backdrop-blur-md rounded-[2.5rem] p-4 p-8 border border-white/20 mt-auto">
+                             <div className="w-full aspect-video rounded-2xl overflow-hidden mb-6 shadow-2xl">
+                                <img 
+                                  src={STYLES.find(s => s.id === selectedStyle)?.image} 
+                                  className="w-full h-full object-cover"
+                                  alt="Style"
+                                />
+                             </div>
+                             <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">DESIGN CODE</p>
+                             <p className="font-mono text-2xl font-black tracking-tighter">KE-OPT-{selectedStyle?.toUpperCase()}</p>
+                          </div>
+                        </div>
+                    </div>
                   </div>
+                </div>
+
+                <div className="flex justify-center flex-wrap gap-12 py-12 opacity-30 grayscale contrast-125">
+                   {CATEGORIES.slice(0, 4).map(cat => <cat.icon key={cat.id} className="w-12 h-12" />)}
+                </div>
               </div>
             </motion.div>
           )}
