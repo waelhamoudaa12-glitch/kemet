@@ -17,19 +17,25 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     // Listen to BOTH collections
     const designsQ = query(collection(db, 'designs'), orderBy('createdAt', 'desc'));
-    const usersQ = query(collection(db, 'users'), orderBy('lastUpdated', 'desc'));
+    const usersQ = query(collection(db, 'users')); // Removed orderBy to ensure all users show up even if fields are missing
 
     const unsubDesigns = onSnapshot(designsQ, (snapshot) => {
       const designsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), isSubmission: true }));
       setDesigns(designsData);
       if (activeTab === 'designs') setLoading(false);
-    });
+    }, (err) => console.error("Designs fetch error:", err));
 
     const unsubUsers = onSnapshot(usersQ, (snapshot) => {
       const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), isSubmission: false }));
-      setAllUsers(usersData);
+      // Sort in memory to avoid missing field index issues in Firestore
+      const sortedUsers = usersData.sort((a: any, b: any) => {
+        const timeA = a.lastUpdated?.toMillis() || a.createdAt?.toMillis() || 0;
+        const timeB = b.lastUpdated?.toMillis() || b.createdAt?.toMillis() || 0;
+        return timeB - timeA;
+      });
+      setAllUsers(sortedUsers);
       if (activeTab === 'users') setLoading(false);
-    });
+    }, (err) => console.error("Users fetch error:", err));
 
     return () => {
       unsubDesigns();
@@ -46,10 +52,11 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
            (phone?.includes(searchQuery));
   });
 
-  const handleDeleteUser = async (designId: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا التصميم نهائياً؟')) {
+  const handleDeleteItem = async (itemId: string) => {
+    const targetCollection = activeTab === 'designs' ? 'designs' : 'users';
+    if (window.confirm(`هل أنت متأكد من حذف هذا ${activeTab === 'designs' ? 'التصميم' : 'المستخدم'} نهائياً؟`)) {
       try {
-        await deleteDoc(doc(db, 'designs', designId));
+        await deleteDoc(doc(db, targetCollection, itemId));
       } catch (error: any) {
         console.error('Firestore Error Details:', error);
         
@@ -57,7 +64,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
         const errInfo = {
           error: error.message,
           operationType: 'delete',
-          path: `designs/${designId}`,
+          path: `${targetCollection}/${itemId}`,
           authInfo: {
             userId: auth.currentUser?.uid,
             email: auth.currentUser?.email,
@@ -364,7 +371,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDeleteUser(u.id);
+                          handleDeleteItem(u.id);
                         }}
                         className="w-full py-5 bg-red-50 text-red-500 font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3 active:scale-95"
                       >

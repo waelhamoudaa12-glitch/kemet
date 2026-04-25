@@ -41,7 +41,8 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           phoneNumber: phoneNumber,
           displayName: displayName,
           isAdmin: phoneNumber === '0101234567123', // Admin check
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          lastUpdated: serverTimestamp()
         });
       } else {
         await signInWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
@@ -69,7 +70,8 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               phoneNumber: phoneNumber,
               displayName: displayName || 'مستخدم جديد',
               isAdmin: phoneNumber === '0101234567123',
-              createdAt: serverTimestamp()
+              createdAt: serverTimestamp(),
+              lastUpdated: serverTimestamp()
             });
           }
           onClose();
