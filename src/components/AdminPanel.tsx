@@ -450,7 +450,7 @@ export function AdminPanel({
           loading ? (
              <div className="flex flex-col items-center justify-center h-full gap-6">
                <Loader2 className="w-12 h-12 animate-spin text-gold-500" />
-               <p className="font-black text-gold-500/40 tracking-widest uppercase text-xs">Fetching Designs...</p>
+               <p className="font-black text-gold-500/40 tracking-widest uppercase text-xs">جاري تحميل المستخدمين...</p>
              </div>
           ) : allUsers.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gold-500/20 gap-4">
