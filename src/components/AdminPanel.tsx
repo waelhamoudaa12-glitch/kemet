@@ -65,6 +65,8 @@ function ImageInput({
     reader.readAsDataURL(file);
   };
 
+  const isDataUrl = value.startsWith('data:image');
+
   return (
     <div className="flex gap-4 text-right">
       {value && (
@@ -74,18 +76,30 @@ function ImageInput({
         <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">
            الصورة (رابط خارجي أو ملف)
         </label>
-        <div className="flex gap-2">
-          <input 
-             type="text" 
-             value={value}
-             onChange={(e) => onChange(e.target.value)}
-             className="flex-1 w-full min-w-0 bg-egypt-black border border-gold-500/10 rounded-2xl py-3 px-4 text-white font-mono text-xs md:text-sm text-left dir-ltr" 
-             placeholder="https://..."
-             required={required && !value}
-          />
+        <div className="flex gap-2 relative">
+          {isDataUrl ? (
+            <div className="flex-1 min-w-0 bg-egypt-black border border-gold-500/10 rounded-2xl py-3 px-4 text-gold-500 font-mono text-xs md:text-sm text-center flex items-center justify-center">
+               تم اختيار ملف من الجهاز
+               <button type="button" onClick={() => onChange('')} className="ml-2 text-red-500 hover:text-red-400">
+                  <X className="w-4 h-4" />
+               </button>
+            </div>
+          ) : (
+            <input 
+               type="text" 
+               value={value}
+               onChange={(e) => onChange(e.target.value)}
+               className="flex-1 w-full min-w-0 bg-egypt-black border border-gold-500/10 rounded-2xl py-3 px-4 text-white font-mono text-xs md:text-sm text-left dir-ltr" 
+               placeholder="https://..."
+               required={required && !value}
+            />
+          )}
+          {isDataUrl && (
+            <input type="hidden" value={value} />
+          )}
           <label className="shrink-0 bg-gold-500/10 hover:bg-gold-500/20 text-gold-500 px-4 py-3 rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest cursor-pointer transition-all flex items-center justify-center gap-2 border border-gold-500/20">
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-            <span className="hidden sm:inline">اختيار</span>
+            <span className="hidden sm:inline">تغيير الصورة</span>
             <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
           </label>
         </div>
@@ -203,18 +217,21 @@ export function AdminPanel({
   };
 
   const handleSaveStyle = async (styleData: any) => {
+    console.log("Saving style data...", styleData);
     try {
       const id = styleData.id || `style_${Date.now()}`;
       await setDoc(doc(db, 'app_styles', id), {
         ...styleData,
         id,
+        order: styleData.order ?? Date.now(),
         updatedAt: new Date()
       }, { merge: true });
+      console.log("Style saved successfully");
       setIsAddingStyle(false);
       setEditingStyle(null);
     } catch (error) {
       console.error("Save style error:", error);
-      alert("حدث خطأ أثناء الحفظ");
+      alert("حدث خطأ أثناء الحفظ: " + String(error));
     }
   };
 
@@ -224,6 +241,7 @@ export function AdminPanel({
       await setDoc(doc(db, 'app_categories', id), {
         ...catData,
         id,
+        order: catData.order ?? Date.now(),
         updatedAt: new Date()
       }, { merge: true });
       setIsAddingCategory(false);
