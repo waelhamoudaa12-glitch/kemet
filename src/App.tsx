@@ -545,9 +545,10 @@ export default function App() {
                       }}
                       className="w-full flex items-center gap-4 p-6 rounded-2xl transition-all bg-black text-white shadow-2xl hover:bg-gray-800 mt-8 border border-blue-500/30 group"
                     >
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-600 text-white group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/50">
-                        <CheckCircle2 className="w-6 h-6" />
-                      </div>
+                        {/* CheckCircle icon removed */}
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-600 text-white group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/50">
+                          <Palette className="w-6 h-6" />
+                        </div>
                       <div className="flex-1 text-right">
                         <p className="text-[10px] uppercase tracking-widest font-black text-blue-400 mb-0.5">الخطوة النهائية</p>
                         <p className="text-lg font-black tracking-tight">لقد انتهيت</p>
@@ -614,10 +615,8 @@ export default function App() {
                               />
                             )}
                             {Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id) && (
-                              <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-[2px] flex items-center justify-center">
-                                <div className="bg-blue-600 text-white p-2 rounded-full shadow-2xl scale-75">
-                                  <CheckCircle2 className="w-5 h-5" />
-                                </div>
+                              <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-[2px]">
+                                {/* Icon removed as per request */}
                               </div>
                             )}
                           </div>
@@ -866,7 +865,7 @@ export default function App() {
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl opacity-50" />
                         
                         <div className="relative z-10 flex-1 flex flex-col justify-center text-center">
-                          <CheckCircle2 className="w-20 h-20 mx-auto mb-8 opacity-50 stroke-[1]" />
+                          {/* Check icon removed */}
                           <h3 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">جاهز للتنفيذ!</h3>
                           <p className="text-blue-100 font-medium mb-12 max-w-sm mx-auto leading-relaxed">
                             لقد قمت باختيار أفضل الخامات بناءً على نمط <br/>

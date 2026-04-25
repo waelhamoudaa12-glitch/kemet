@@ -7,26 +7,17 @@ import { STYLES, CATEGORIES } from '../constants';
 import { Category, Option } from '../types';
 
 export function AdminPanel({ onClose }: { onClose: () => void }) {
-  const [designs, setDesigns] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState<'designs' | 'users'>('designs');
 
   useEffect(() => {
-    // Listen to BOTH collections
-    const designsQ = query(collection(db, 'designs'), orderBy('createdAt', 'desc'));
-    const usersQ = query(collection(db, 'users')); // Removed orderBy to ensure all users show up even if fields are missing
-
-    const unsubDesigns = onSnapshot(designsQ, (snapshot) => {
-      const designsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), isSubmission: true }));
-      setDesigns(designsData);
-      if (activeTab === 'designs') setLoading(false);
-    }, (err) => console.error("Designs fetch error:", err));
+    // Listen to users collection
+    const usersQ = query(collection(db, 'users'));
 
     const unsubUsers = onSnapshot(usersQ, (snapshot) => {
-      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), isSubmission: false }));
+      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       // Sort in memory to avoid missing field index issues in Firestore
       const sortedUsers = usersData.sort((a: any, b: any) => {
         const timeA = a.lastUpdated?.toMillis() || a.createdAt?.toMillis() || 0;
@@ -34,29 +25,23 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
         return timeB - timeA;
       });
       setAllUsers(sortedUsers);
-      if (activeTab === 'users') setLoading(false);
+      setLoading(false);
     }, (err) => console.error("Users fetch error:", err));
 
-    return () => {
-      unsubDesigns();
-      unsubUsers();
-    };
-  }, [activeTab]);
+    return () => unsubUsers();
+  }, []);
 
-  const currentList = activeTab === 'designs' ? designs : allUsers;
-
-  const filteredItems = currentList.filter(item => {
-    const name = activeTab === 'designs' ? item.userName : item.displayName;
-    const phone = activeTab === 'designs' ? item.userPhone : item.phoneNumber;
+  const filteredItems = allUsers.filter(item => {
+    const name = item.displayName;
+    const phone = item.phoneNumber;
     return (name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
            (phone?.includes(searchQuery));
   });
 
   const handleDeleteItem = async (itemId: string) => {
-    const targetCollection = activeTab === 'designs' ? 'designs' : 'users';
-    if (window.confirm(`هل أنت متأكد من حذف هذا ${activeTab === 'designs' ? 'التصميم' : 'المستخدم'} نهائياً؟`)) {
+    if (window.confirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟')) {
       try {
-        await deleteDoc(doc(db, targetCollection, itemId));
+        await deleteDoc(doc(db, 'users', itemId));
       } catch (error: any) {
         console.error('Firestore Error Details:', error);
         
@@ -64,7 +49,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
         const errInfo = {
           error: error.message,
           operationType: 'delete',
-          path: `${targetCollection}/${itemId}`,
+          path: `users/${itemId}`,
           authInfo: {
             userId: auth.currentUser?.uid,
             email: auth.currentUser?.email,
@@ -142,8 +127,8 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Selected Style */}
                   <div className="md:col-span-2 bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden group">
-                    <div className="relative h-64 overflow-hidden">
-                      {selectedUser.selections?.style && (
+                    <div className="relative h-64 md:h-80 overflow-hidden">
+                      {selectedUser.selections?.style ? (
                         <>
                           <img 
                             src={STYLES.find(s => s.id === selectedUser.selections.style)?.image} 
@@ -151,48 +136,73 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                             referrerPolicy="no-referrer"
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-                            <span className="text-blue-400 font-black text-xs uppercase tracking-widest mb-2">النمط المختار</span>
-                            <h4 className="text-3xl font-black text-white">{STYLES.find(s => s.id === selectedUser.selections.style)?.name || selectedUser.selections.style}</h4>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-8 md:p-12">
+                            <div className="flex items-center gap-4 mb-4">
+                              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                <Sparkles className="w-6 h-6 text-white" />
+                              </div>
+                              <span className="text-blue-400 font-black text-sm uppercase tracking-[0.2em]">النمط المختار</span>
+                            </div>
+                            <h4 className="text-4xl md:text-5xl font-black text-white">{STYLES.find(s => s.id === selectedUser.selections.style)?.name || selectedUser.selections.style}</h4>
+                            <p className="text-gray-300 mt-2 font-medium max-w-xl">
+                              {STYLES.find(s => s.id === selectedUser.selections.style)?.description}
+                            </p>
                           </div>
                         </>
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-400 gap-4">
+                            <Palette className="w-16 h-16 opacity-20" />
+                            <p className="text-xl font-bold">لم يتم اختيار نمط بعد</p>
+                        </div>
                       )}
                     </div>
                   </div>
 
                   {/* Selections Breakdown */}
-                  {CATEGORIES.map((cat: Category) => {
-                    const selectedOptionId = selectedUser.selections?.[cat.id];
-                    const option = cat.options.find((o: Option) => o.id === selectedOptionId);
-                    
-                    if (!option) return null;
+                  {selectedUser.selections ? (
+                    CATEGORIES.map((cat: Category) => {
+                      const selectedOptionId = selectedUser.selections[cat.id];
+                      const option = cat.options.find((o: Option) => o.id === selectedOptionId);
+                      
+                      if (!option) return null;
 
-                    return (
-                      <div key={cat.id} className="bg-white p-6 rounded-[2rem] shadow-lg border border-gray-100 flex gap-6">
-                        <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 shadow-md">
-                          <img 
-                            src={option.image} 
-                            alt={option.name} 
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex flex-col justify-center">
-                          <div className="flex items-center gap-2 text-blue-600 mb-1">
-                            <cat.icon className="w-4 h-4" />
-                            <span className="text-[10px] font-black uppercase tracking-wider">{cat.name}</span>
+                      return (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          key={cat.id} 
+                          className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-gray-100 flex gap-6 hover:shadow-2xl transition-all"
+                        >
+                          <div className="w-28 h-28 rounded-3xl overflow-hidden shrink-0 shadow-lg border-4 border-white">
+                            <img 
+                              src={option.image} 
+                              alt={option.name} 
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                          <h5 className="text-xl font-bold text-gray-900">{option.name}</h5>
-                          {option.color && (
-                             <div className="flex items-center gap-2 mt-2">
-                               <div className="w-4 h-4 rounded-full border border-gray-200" style={{ backgroundColor: option.color }} />
-                               <span className="text-[10px] text-gray-400 font-bold uppercase">{option.color}</span>
-                             </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                          <div className="flex flex-col justify-center">
+                            <div className="flex items-center gap-2 text-blue-600 mb-2">
+                              <cat.icon className="w-5 h-5" />
+                              <span className="text-xs font-black uppercase tracking-[0.1em]">{cat.name}</span>
+                            </div>
+                            <h5 className="text-2xl font-black text-gray-900 leading-tight">{option.name}</h5>
+                            {option.color && (
+                               <div className="flex items-center gap-3 mt-3 bg-gray-50 px-3 py-2 rounded-full w-fit">
+                                 <div className="w-5 h-5 rounded-full border border-white shadow-sm" style={{ backgroundColor: option.color }} />
+                                 <span className="text-[10px] text-gray-500 font-black uppercase tracking-wider">{option.color}</span>
+                               </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  ) : (
+                    <div className="md:col-span-2 text-center py-20 text-gray-400">
+                        <Loader2 className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                        <p className="text-xl font-bold">المستخدم لم يبدأ في اختيار التفاصيل بعد</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Final QR/Ticket Placeholder */}
@@ -200,7 +210,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
                   <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
                   
-                  <CheckCircle2 className="w-16 h-16 mx-auto mb-6 opacity-80" />
+                  {/* Icon removed */}
 
                 </div>
               </div>
@@ -216,23 +226,8 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <h1 className="text-xl md:text-3xl font-black tracking-tighter">لوحة التحكم</h1>
-            <p className="text-gray-400 text-[10px] md:text-sm font-medium">إدارة {currentList.length} عنصر ({activeTab === 'designs' ? 'تصميمات مرسلة' : 'مستخدمين مسجلين'})</p>
+            <p className="text-gray-400 text-[10px] md:text-sm font-medium">إدارة {allUsers.length} مستخدم مسجل</p>
           </div>
-        </div>
-
-        <div className="flex bg-gray-50 p-1 rounded-2xl mx-8">
-          <button 
-            onClick={() => { setActiveTab('designs'); setLoading(true); }}
-            className={`flex-1 py-3 px-6 rounded-xl text-xs font-black transition-all ${activeTab === 'designs' ? 'bg-white shadow-md text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            التصميمات النهائية
-          </button>
-          <button 
-            onClick={() => { setActiveTab('users'); setLoading(true); }}
-            className={`flex-1 py-3 px-6 rounded-xl text-xs font-black transition-all ${activeTab === 'users' ? 'bg-white shadow-md text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            كل المستخدمين
-          </button>
         </div>
 
         <div className="flex-1 max-w-md mx-8 hidden md:block">
@@ -273,12 +268,12 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
         {loading ? (
            <div className="flex flex-col items-center justify-center h-full gap-6">
              <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
-             <p className="font-bold text-gray-400 tracking-widest uppercase text-xs">Fetching {activeTab === 'designs' ? 'Designs' : 'Users'}...</p>
+             <p className="font-bold text-gray-400 tracking-widest uppercase text-xs">Fetching Users...</p>
            </div>
-        ) : currentList.length === 0 ? (
+        ) : allUsers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
-            <CheckCircle2 className="w-16 h-16 opacity-20" />
-            <p className="text-xl font-bold">لا يوجد {activeTab === 'designs' ? 'تصميمات مرسلة' : 'مستخدمين'} بعد</p>
+            {/* Icon removed */}
+            <p className="text-xl font-bold">لا يوجد مستخدمين بعد</p>
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
@@ -296,10 +291,10 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
             <AnimatePresence mode="popLayout">
               {filteredItems.map((u) => {
                 const isNew = isNewUser(u.createdAt || u.lastUpdated);
-                const name = activeTab === 'designs' ? u.userName : u.displayName;
-                const phone = activeTab === 'designs' ? u.userPhone : u.phoneNumber;
-                const dateLabel = activeTab === 'designs' ? 'أرسل في' : 'آخر تحديث';
-                const timestamp = activeTab === 'designs' ? u.createdAt : u.lastUpdated;
+                const name = u.displayName;
+                const phone = u.phoneNumber;
+                const dateLabel = 'آخر تحديث';
+                const timestamp = u.lastUpdated || u.createdAt;
 
                 return (
                   <motion.div 
@@ -318,14 +313,31 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                       </div>
                     )}
                     
-                    <div className="flex flex-col items-center text-center mb-10 mt-4">
-                      <div className={`w-20 h-20 ${activeTab === 'designs' ? 'bg-blue-600' : 'bg-gray-100'} flex items-center justify-center rounded-3xl mb-4 shadow-inner`}>
-                        {activeTab === 'designs' ? <Palette className="w-10 h-10 text-white" /> : <User className="w-10 h-10 text-gray-400" />}
+                    <div className="flex flex-col items-center text-center mb-8 mt-4">
+                      <div className="w-24 h-24 relative mb-4">
+                        <div className="absolute inset-0 bg-gray-100 rounded-3xl shadow-inner flex items-center justify-center">
+                          <User className="w-12 h-12 text-gray-400" />
+                        </div>
+                        {u.selections?.style && (
+                          <img 
+                            src={STYLES.find(s => s.id === u.selections.style)?.image}
+                            alt="Selected Style"
+                            referrerPolicy="no-referrer"
+                            className="absolute inset-0 w-full h-full object-cover rounded-3xl shadow-lg border-2 border-white ring-4 ring-blue-50"
+                          />
+                        )}
                       </div>
                       <h3 className="text-2xl font-black tracking-tight">{name || '---'}</h3>
-                      <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full mt-2">
-                        {activeTab === 'designs' ? 'FINAL SUBMISSION' : 'MEMBER PROFILE'}
-                      </span>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                          MEMBER PROFILE
+                        </span>
+                        {u.selections?.style && (
+                          <span className="text-[10px] font-black text-white bg-blue-600 px-3 py-1 rounded-full">
+                            DESIGNED
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="space-y-4 mb-10">
@@ -337,7 +349,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                       {u.selections && (
                         <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50">
                           <p className="text-[10px] font-black text-blue-600 uppercase mb-2">
-                            {activeTab === 'designs' ? 'Final Selections' : 'Draft Progress'}
+                             Draft Progress
                           </p>
                           <div className="flex flex-col gap-1">
                             {Object.entries(u.selections).map(([key, val]: [string, any]) => {
