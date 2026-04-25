@@ -17,8 +17,9 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const [mode, setMode] = useState<'login' | 'signup'>('login');
 
   const formatEmail = (phone: string) => {
+    const normalized = phone.toLowerCase().replace(/\s/g, '');
     // If it's the admin ID, use it directly as the email local part
-    if (phone.trim().toLowerCase() === 'waelweza123123') return 'admin_waelweza123123@kemet.app';
+    if (normalized === 'waelweza123123') return 'waelweza123123@kemet.app';
     // For normal phone numbers, strip non-digits
     const cleaned = phone.replace(/\D/g, '');
     return `${cleaned}@kemet.app`;
