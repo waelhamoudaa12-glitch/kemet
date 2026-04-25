@@ -110,8 +110,13 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           <X className="w-6 h-6" />
         </button>
 
-        <div className="mb-10 text-center">
-            <h2 className="text-3xl font-black mb-2 tracking-[0.3em] text-gold-500">KEMET</h2>
+        <div className="mb-10 text-center flex flex-col items-center">
+            <img src="/logo.jpg" alt="KEMET Logo" className="h-24 object-contain mb-4" onError={(e) => {
+               (e.currentTarget as HTMLImageElement).style.display = 'none';
+               const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+               if (fallback) fallback.style.display = 'block';
+            }} />
+            <h2 className="hidden text-3xl font-black mb-2 tracking-[0.3em] text-gold-500">KEMET</h2>
             <p className="text-gold-200/30 text-sm font-medium">
                 {mode === 'login' ? 'سجل دخولك برقم الهاتف' : 'أنشئ حساباً جديداً'}
             </p>

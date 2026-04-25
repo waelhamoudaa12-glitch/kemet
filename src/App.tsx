@@ -259,8 +259,15 @@ export default function App() {
       >
         <div className="flex items-center cursor-pointer shrink-0 group" onClick={() => setCurrentPage('home')}>
            <div className="flex flex-col items-center">
-             <h1 className="text-2xl md:text-3xl font-black tracking-[0.3em] text-white group-hover:text-gold-500 transition-colors uppercase">KEMET</h1>
-             <div className="w-full h-px bg-gold-500/30 scale-x-50 group-hover:scale-x-100 transition-transform"></div>
+             <img src="/logo.jpg" alt="KEMET Logo" className="h-16 md:h-20 object-contain" onError={(e) => {
+               (e.currentTarget as HTMLImageElement).style.display = 'none';
+               const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+               if (fallback) fallback.style.display = 'flex';
+             }} />
+             <div className="hidden flex-col items-center">
+               <h1 className="text-2xl md:text-3xl font-black tracking-[0.3em] text-white group-hover:text-gold-500 transition-colors uppercase">KEMET</h1>
+               <div className="w-full h-px bg-gold-500/30 scale-x-50 group-hover:scale-x-100 transition-transform"></div>
+             </div>
            </div>
         </div>
 
