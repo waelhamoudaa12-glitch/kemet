@@ -8,11 +8,12 @@ const auth = getAuth(app);
 
 async function test() {
   try {
-    console.log("Trying to sign in with non-existent user...");
-    await signInWithEmailAndPassword(auth, "xyzabc123123@kemet.app", "kemet_default_password_123");
-    console.log("LOGGED IN");
+    console.log("Trying to create user...");
+    const num = Math.floor(Math.random() * 100000);
+    const user = await createUserWithEmailAndPassword(auth, `test${num}@kemet.app`, "kemet_default_password_123");
+    console.log("CREATED SUCCESSFULLY: ", user.user.uid);
   } catch (e) {
-    console.log("Expected fail: ", e.code, e.message);
+    console.log("FAIL: ", e.code, e.message);
   }
 }
 test().then(() => process.exit()).catch();

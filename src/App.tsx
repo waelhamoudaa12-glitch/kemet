@@ -31,7 +31,9 @@ import {
   ArrowRight,
   Maximize2,
   Lock,
-  UserCircle
+  UserCircle,
+  Menu,
+  X
 } from 'lucide-react';
 
 // --- Types ---
@@ -88,6 +90,7 @@ export default function App() {
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [appStyles, setAppStyles] = useState<any[]>([]);
   const [appCategories, setAppCategories] = useState<any[]>([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const unsubStyles = subscribeToStyles(setAppStyles);
@@ -271,33 +274,56 @@ export default function App() {
            </div>
         </div>
 
-        <div className="flex items-center gap-1 md:gap-4 flex-1 justify-end overflow-hidden">
-          <nav className="flex items-center gap-2 md:gap-4 lg:gap-6 mx-1 md:mx-4 overflow-x-auto no-scrollbar py-2">
-              {navItems.map(item => (
-                  <button 
-                      key={item.id}
-                      onClick={() => {
-                          if (item.id === 'home' || item.id === 'about') {
-                              setCurrentPage(item.id as AppState);
-                          } else if (item.id === 'contact') {
-                              window.open('https://wa.me/201554853093', '_blank');
-                          } else if (item.id === 'mydesign') {
-                               if (!user) {
-                                setIsAuthModalOpen(true);
-                                return;
-                              }
-                              setCurrentPage(item.id as AppState);
-                          }
-                      }}
-                      className={`flex items-center gap-1 group transition-all relative py-1 shrink-0 ${
-                          currentPage === item.id ? 'text-gold-500' : 'text-white hover:text-gold-500'
-                      }`}
-                  >
-                      <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.15em] block whitespace-nowrap">{item.label}</span>
-                      <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gold-500 transition-all ${currentPage === item.id ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0 group-hover:opacity-100'}`} />
-                  </button>
-              ))}
-          </nav>
+        <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end overflow-visible">
+          {/* Hamburger Menu Button */}
+          <div className="relative">
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gold-500 hover:text-gold-400 p-2 border border-gold-500/20 rounded-lg bg-gold-500/5 transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5 md:w-6 md:h-6" /> : <Menu className="w-5 h-5 md:w-6 md:h-6" />}
+            </button>
+            
+            {/* Dropdown Menu */}
+            <AnimatePresence>
+              {isMobileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-14 right-0 w-48 bg-egypt-dark border border-gold-500/10 rounded-xl shadow-2xl py-2 z-50 origin-top-right overflow-hidden"
+                >
+                  <div className="flex flex-col">
+                    {navItems.map(item => (
+                        <button 
+                            key={item.id}
+                            onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                if (item.id === 'home' || item.id === 'about') {
+                                    setCurrentPage(item.id as AppState);
+                                } else if (item.id === 'contact') {
+                                    window.open('https://wa.me/201554853093', '_blank');
+                                } else if (item.id === 'mydesign') {
+                                     if (!user) {
+                                      setIsAuthModalOpen(true);
+                                      return;
+                                    }
+                                    setCurrentPage(item.id as AppState);
+                                }
+                            }}
+                            className={`flex items-center px-4 py-3 text-right hover:bg-gold-500/10 transition-colors ${
+                                currentPage === item.id ? 'text-gold-500 bg-gold-500/5' : 'text-gray-300'
+                            }`}
+                        >
+                            <span className="text-sm font-bold uppercase w-full">{item.label}</span>
+                        </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           <div className="flex items-center gap-1 md:gap-4 shrink-0">
               <button 
