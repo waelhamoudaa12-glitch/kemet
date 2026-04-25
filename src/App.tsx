@@ -388,7 +388,7 @@ export default function App() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="mb-8"
                 >
-                  <span className="bg-gold-500/10 text-gold-500 border border-gold-500/30 px-6 py-2.5 text-xs font-black uppercase tracking-[0.3em] rounded-full inline-block shadow-glow">
+                  <span className="bg-gold-500/20 text-white border border-gold-500/50 px-8 py-3 text-base md:text-lg font-bold uppercase tracking-[0.1em] rounded-full inline-block shadow-lg">
                     مستشار التشطيب الملكي الذكي
                   </span>
                 </motion.div>
