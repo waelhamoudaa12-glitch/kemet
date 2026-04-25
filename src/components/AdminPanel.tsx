@@ -13,25 +13,25 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
 
   useEffect(() => {
-    // Order by createdAt descending so newest appear first
-    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    // Order by createdAt descending so newest designs appear first
+    const q = query(collection(db, 'designs'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setUsers(usersData);
+      const designsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setUsers(designsData); // Reusing 'users' state variable but it now holds design documents
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
   const filteredUsers = users.filter(u => 
-    (u.displayName?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (u.phoneNumber?.includes(searchQuery))
+    (u.userName?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (u.userPhone?.includes(searchQuery))
   );
 
-  const handleDeleteUser = async (userId: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟')) {
+  const handleDeleteUser = async (designId: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا التصميم نهائياً؟')) {
       try {
-        await deleteDoc(doc(db, 'users', userId));
+        await deleteDoc(doc(db, 'designs', designId));
       } catch (error: any) {
         console.error('Firestore Error Details:', error);
         
@@ -79,7 +79,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   <ChevronLeft className="w-6 h-6" />
                 </button>
                 <div>
-                  <h2 className="text-xl md:text-2xl font-black tracking-tight">{selectedUser.displayName}</h2>
+                  <h2 className="text-xl md:text-2xl font-black tracking-tight">{selectedUser.userName}</h2>
                   <p className="text-gray-400 text-xs md:text-sm font-medium">تصميم المستخدم النهائي (Final Ticket)</p>
                 </div>
               </div>
@@ -99,11 +99,11 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                     <User className="w-12 h-12 text-white" />
                   </div>
                   <div className="flex-1 text-center md:text-right">
-                    <h3 className="text-3xl font-black mb-2">{selectedUser.displayName}</h3>
+                    <h3 className="text-3xl font-black mb-2">{selectedUser.userName}</h3>
                     <div className="flex flex-wrap justify-center md:justify-end gap-4 text-gray-500 font-bold">
                       <div className="flex items-center gap-2">
                         <Phone className="w-4 h-4 text-blue-500" />
-                        <span className="font-mono">{selectedUser.phoneNumber}</span>
+                        <span className="font-mono">{selectedUser.userPhone}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-blue-500" />
@@ -191,7 +191,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <h1 className="text-xl md:text-3xl font-black tracking-tighter">لوحة التحكم</h1>
-            <p className="text-gray-400 text-[10px] md:text-sm font-medium">إدارة {users.length} مستخدم مسجل</p>
+            <p className="text-gray-400 text-[10px] md:text-sm font-medium">إدارة {users.length} تصميم مرسل من المستخدمين</p>
           </div>
         </div>
 
@@ -233,12 +233,12 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
         {loading ? (
            <div className="flex flex-col items-center justify-center h-full gap-6">
              <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
-             <p className="font-bold text-gray-400 tracking-widest uppercase text-xs">Fetching Data...</p>
+             <p className="font-bold text-gray-400 tracking-widest uppercase text-xs">Fetching Designs...</p>
            </div>
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
-            <User className="w-16 h-16 opacity-20" />
-            <p className="text-xl font-bold">لا يوجد مستخدمين مسجلين بعد</p>
+            <CheckCircle2 className="w-16 h-16 opacity-20" />
+            <p className="text-xl font-bold">لا يوجد تصميمات مرسلة بعد</p>
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
@@ -274,21 +274,17 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                     )}
                     
                     <div className="flex flex-col items-center text-center mb-10 mt-4">
-                      <div className={`w-20 h-20 ${u.isAdmin ? 'bg-blue-600' : 'bg-gray-100'} flex items-center justify-center rounded-3xl mb-4 shadow-inner`}>
-                        <User className={`w-10 h-10 ${u.isAdmin ? 'text-white' : 'text-gray-400'}`} />
+                      <div className={`w-20 h-20 bg-blue-600 flex items-center justify-center rounded-3xl mb-4 shadow-inner`}>
+                        <Palette className={`w-10 h-10 text-white`} />
                       </div>
-                      <h3 className="text-2xl font-black tracking-tight">{u.displayName}</h3>
-                      {u.isAdmin ? (
-                        <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full mt-2">ADMINISTRATOR</span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Verified Member</span>
-                      )}
+                      <h3 className="text-2xl font-black tracking-tight">{u.userName}</h3>
+                      <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full mt-2">USER SUBMISSION</span>
                     </div>
 
                     <div className="space-y-4 mb-10">
                       <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100/50">
                         <Phone className="w-5 h-5 text-blue-500" />
-                        <span className="font-mono font-bold text-lg">{u.phoneNumber}</span>
+                        <span className="font-mono font-bold text-lg">{u.userPhone}</span>
                       </div>
                       
                       {u.selections && (

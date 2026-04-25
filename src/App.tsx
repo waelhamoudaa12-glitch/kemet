@@ -109,14 +109,28 @@ export default function App() {
   };
   
   // Save selection to Firestore if logged in
-  const saveSelection = async (newSelections: any) => {
+  const saveSelection = async (newSelections: any, isFinal = false) => {
     if (user) {
       try {
+        // Save to user profile for persistence
         await setDoc(doc(db, 'users', user.uid), {
           selections: newSelections,
           lastUpdated: serverTimestamp()
         }, { merge: true });
-      } catch (err) {
+
+        // If it's a final design submission, save to 'designs' collection for admin focus
+        if (isFinal) {
+          const designId = `${user.uid}_${Date.now()}`;
+          await setDoc(doc(db, 'designs', designId), {
+            userId: user.uid,
+            userName: user.displayName || user.phoneNumber,
+            userPhone: user.phoneNumber,
+            style: newSelections.style,
+            selections: newSelections,
+            createdAt: serverTimestamp()
+          });
+        }
+      } catch (err: any) {
         console.error("Error saving selection:", err);
       }
     }
@@ -478,7 +492,10 @@ export default function App() {
                   </button>
                 ))}
                 <button
-                  onClick={() => setCurrentPage('summary')}
+                  onClick={() => {
+                    saveSelection(selections, true);
+                    setCurrentPage('summary');
+                  }}
                   className="px-6 py-2 rounded-full text-xs font-black bg-blue-600 text-white shadow-lg animate-pulse mr-2"
                 >
                   لقد انتهيت
@@ -522,7 +539,10 @@ export default function App() {
                     ))}
 
                     <button
-                      onClick={() => setCurrentPage('summary')}
+                      onClick={() => {
+                        saveSelection(selections, true);
+                        setCurrentPage('summary');
+                      }}
                       className="w-full flex items-center gap-4 p-6 rounded-2xl transition-all bg-black text-white shadow-2xl hover:bg-gray-800 mt-8 border border-blue-500/30 group"
                     >
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-600 text-white group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/50">
@@ -636,6 +656,7 @@ export default function App() {
                           if (currentCategoryIndex < CATEGORIES.length - 1) {
                             setCurrentCategoryIndex(prev => prev + 1);
                           } else {
+                            saveSelection(selections, true);
                             setCurrentPage('summary');
                           }
                         }}
