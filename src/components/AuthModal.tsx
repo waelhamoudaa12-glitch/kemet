@@ -107,13 +107,10 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         return;
       }
       
-      setError(err.message || 'حدث خطأ غير متوقع.');
+      setError((err.message || 'حدث خطأ غير متوقع.') + (err.code ? ` (${err.code})` : ''));
       
     } finally {
-      if (!isTimeout) {
-         setLoading(false);
-         clearTimeout(timeoutId);
-      }
+      setLoading(false);
     }
   };
 
