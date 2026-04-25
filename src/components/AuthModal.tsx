@@ -101,15 +101,15 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       <motion.div 
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white w-full max-w-md p-8 lg:p-12 relative border-t-8 border-blue-600 shadow-2xl"
+        className="bg-egypt-dark w-full max-w-md p-8 lg:p-12 relative border-t-8 border-gold-500 shadow-3xl rounded-b-[2rem]"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-black">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gold-500/40 hover:text-gold-500 transition-colors">
           <X className="w-6 h-6" />
         </button>
 
         <div className="mb-10 text-center">
-            <h2 className="text-3xl font-black mb-2 tracking-tighter text-blue-600">KEMET</h2>
-            <p className="text-gray-400 text-sm">
+            <h2 className="text-3xl font-black mb-2 tracking-[0.3em] text-gold-500">KEMET</h2>
+            <p className="text-gold-200/30 text-sm font-medium">
                 {mode === 'login' ? 'سجل دخولك برقم الهاتف' : 'أنشئ حساباً جديداً'}
             </p>
         </div>
@@ -117,15 +117,15 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         <form onSubmit={handleSubmit} className="space-y-6">
           {mode === 'signup' && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-              <label className="block text-xs font-bold text-gray-500 mb-2">الاسم</label>
+              <label className="block text-xs font-black text-gold-500/60 uppercase tracking-widest mb-2">الاسم</label>
               <div className="relative">
-                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                <UserIcon className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 text-gold-500/30" />
                 <input 
                   type="text" 
                   placeholder="اكتب اسمك هنا"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full border-b-2 border-gray-100 py-4 pl-12 focus:border-blue-600 outline-none transition-all text-lg font-bold"
+                  className="w-full border-b-2 border-gold-500/10 bg-transparent py-4 pl-10 focus:border-gold-500 outline-none transition-all text-lg font-black text-white"
                   required
                 />
               </div>
@@ -133,15 +133,15 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-gray-500 mb-2">رقم التليفون</label>
+            <label className="block text-xs font-black text-gold-500/60 uppercase tracking-widest mb-2">رقم التليفون</label>
             <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              <Phone className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 text-gold-500/30" />
               <input 
                 type="tel" 
                 placeholder="01xxxxxxxxx"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className="w-full border-b-2 border-gray-100 py-4 pl-12 focus:border-blue-600 outline-none transition-all text-lg font-bold tracking-widest"
+                className="w-full border-b-2 border-gold-500/10 bg-transparent py-4 pl-10 focus:border-gold-500 outline-none transition-all text-lg font-black text-white tracking-widest"
                 required
               />
             </div>
@@ -151,7 +151,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             <motion.p 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }}
-              className="text-xs font-bold text-center mt-4 p-3 bg-red-50 text-red-600 border border-red-100 rounded"
+              className="text-xs font-bold text-center mt-4 p-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded"
             >
               {error}
             </motion.p>
@@ -160,7 +160,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-black text-white py-5 font-bold uppercase tracking-widest flex items-center justify-center gap-4 hover:bg-gray-800 transition-all disabled:opacity-50 mt-4"
+            className="w-full bg-gold-500 text-egypt-black py-5 rounded-xl font-black uppercase tracking-[0.2em] flex items-center justify-center gap-4 hover:bg-gold-600 transition-all disabled:opacity-50 mt-4 shadow-lg shadow-gold-500/20"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                 <>
@@ -177,7 +177,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                   setMode(mode === 'login' ? 'signup' : 'login');
                   setError('');
                 }}
-                className="text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors"
+                className="text-xs font-black text-gold-500/40 hover:text-gold-500 transition-colors uppercase tracking-widest"
                 id="switch-mode-btn"
               >
                   {mode === 'login' ? 'ليس لديك حساب؟ اضغط هنا للتسجيل' : 'لديك حساب بالفعل؟ اضغط هنا للدخول'}

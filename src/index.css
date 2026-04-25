@@ -1,37 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Sans+Arabic:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans+Arabic:wght@100;300;400;500;700;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Playfair Display", serif;
+  --font-sans: "Noto Sans Arabic", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Space Grotesk", ui-monospace, SFMono-Regular, monospace;
   
-  --color-brand-primary: #1a1a1a;
-  --color-brand-secondary: #fdfdfd;
-  --color-brand-accent: #2563eb; /* Cobalt Blue */
-  --color-border-light: #f3f4f6;
+  --color-gold-50: #f7f5f0;
+  --color-gold-100: #efeadf;
+  --color-gold-200: #e0d5c0;
+  --color-gold-300: #d1bf9f;
+  --color-gold-400: #c2a97f;
+  --color-gold-500: #bda27e; /* Muted Brass/Gold from image */
+  --color-gold-600: #a38865;
+  --color-gold-700: #897053;
+  --color-gold-800: #6f5841;
+  --color-gold-900: #554030;
+  
+  --color-egypt-black: #141517; /* Deep Charcoal from image */
+  --color-egypt-dark: #1c1e22;
 }
 
 @layer base {
   body {
-    @apply font-sans antialiased bg-white text-brand-primary;
+    @apply bg-egypt-black text-gold-100 antialiased;
+    background-image: 
+      radial-gradient(circle at 50% 50%, rgba(189, 162, 126, 0.03) 0%, transparent 60%),
+      linear-gradient(rgba(28, 30, 34, 0.5), rgba(20, 21, 23, 0.8));
     direction: rtl;
-    letter-spacing: -0.01em;
-  }
-  
-  h1, h2, h3, h4 {
-    @apply font-sans tracking-tight text-brand-primary;
   }
 }
 
-.editorial-border {
-  @apply border border-border-light;
+.gold-gradient {
+  background: linear-gradient(135deg, #e0d5c0 0%, #bda27e 50%, #897053 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.editorial-sidebar {
-  @apply border-l border-border-light bg-white;
+.gold-border {
+  border: 1px solid rgba(189, 162, 126, 0.2);
 }
 
-.stagger-item {
-  opacity: 0;
-  transform: translateY(20px);
+.pharaonic-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v1H0V0zm0 4h40v1H0V4zm0 4h40v1H0V8zm0 4h40v1H0v-1zm0 4h40v1H0v-1zm0 4h40v1H0v-1zm0 4h40v1H0v-1zm0 4h40v1H0v-1zm0 4h40v1H0v-1zm0 4h40v1H0v-1z' fill='%23bda27e' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
 }
