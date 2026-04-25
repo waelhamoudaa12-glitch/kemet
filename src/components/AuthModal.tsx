@@ -18,7 +18,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
   const formatEmail = (phone: string) => {
     // If it's the admin ID, use it directly as the email local part
-    if (phone.trim().toLowerCase() === 'waelweza123123') return 'waelweza123123@kemet.app';
+    if (phone.trim().toLowerCase() === 'waelweza123123') return 'admin_waelweza123123@kemet.app';
     // For normal phone numbers, strip non-digits
     const cleaned = phone.replace(/\D/g, '');
     return `${cleaned}@kemet.app`;
@@ -86,11 +86,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           }
         }
       } else {
-        if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
-           setError('بيانات الدخول غير صحيحة');
-        } else {
-           setError(err.message || 'حدث خطأ غير متوقع');
-        }
+        setError(err.message || 'حدث خطأ غير متوقع');
       }
     } finally {
       setLoading(false);

@@ -629,7 +629,7 @@ export function AdminPanel({
                       </div>
 
                       {(() => {
-                        const isMainOwner = u.email === 'waelweza123123@kemet.app' || u.email === 'waelhamoudaa12@gmail.com' || u.phoneNumber?.toLowerCase() === 'waelweza123123';
+                        const isMainOwner = u.email === 'admin_waelweza123123@kemet.app' || u.email === 'waelhamoudaa12@gmail.com' || u.phoneNumber?.toLowerCase() === 'waelweza123123';
                         if (!isMainOwner) {
                           return (
                             <button 

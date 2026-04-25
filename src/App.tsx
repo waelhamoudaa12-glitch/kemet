@@ -125,7 +125,7 @@ export default function App() {
       if (u) {
         // Fallback admin check for the ID provided
         const userEmailLower = u.email?.toLowerCase() || '';
-        const isAdminEmail = userEmailLower === 'waelweza123123@kemet.app' || userEmailLower === 'waelhamoudaa12@gmail.com';
+        const isAdminEmail = userEmailLower === 'admin_waelweza123123@kemet.app' || userEmailLower === 'waelhamoudaa12@gmail.com';
         
         if (isAdminEmail) {
           setIsAdmin(true);
