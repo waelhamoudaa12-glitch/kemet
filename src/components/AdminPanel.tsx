@@ -176,17 +176,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
                   
                   <CheckCircle2 className="w-16 h-16 mx-auto mb-6 opacity-80" />
-                  <h4 className="text-3xl font-black mb-4 tracking-tight">تم عرض التذكرة النهائية بنجاح</h4>
-                  <p className="text-blue-100 font-medium max-w-md mx-auto mb-8">
-                    هذه هي الاختيارات التي قام بها {selectedUser.displayName}. يمكنك الآن البدء في مراجعة التصميم وتنفيذه.
-                  </p>
 
-                  <button 
-                    onClick={() => window.print()}
-                    className="bg-white text-blue-600 px-10 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl active:scale-95"
-                  >
-                    Download as PDF
-                  </button>
                 </div>
               </div>
             </main>
