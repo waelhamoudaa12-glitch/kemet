@@ -160,6 +160,7 @@ export default function App() {
   const navItems = [
     { id: 'home', label: 'الرئيسية' },
     { id: 'about', label: 'عنا' },
+    { id: 'contact', label: 'اتصل بنا' },
     ...(user ? [{ id: 'mydesign', label: 'تصميمي' }] : []),
   ];
 
@@ -185,6 +186,8 @@ export default function App() {
                       onClick={() => {
                           if (item.id === 'home' || item.id === 'about') {
                               setCurrentPage(item.id as AppState);
+                          } else if (item.id === 'contact') {
+                              window.open('https://wa.me/201554853093', '_blank');
                           } else if (item.id === 'mydesign') {
                                if (!user) {
                                 setIsAuthModalOpen(true);
@@ -289,18 +292,32 @@ export default function App() {
                   نحن هنا لنحول جدران منزلك إلى لوحة فنية. اختر خاماتك، ألوانك، وتفاصيل منزلك بكل سهولة وأناقة مع خبراءنا.
                 </motion.p>
                 
-                <motion.button
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  whileHover={{ x: -10 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleStart}
-                  className="bg-black text-white px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-bold rounded-none flex items-center gap-4 md:gap-6 w-full md:w-max shadow-2xl justify-center"
-                >
-                  ابدأ اختيار تصميمك
-                  <ArrowRight className="w-6 h-6" />
-                </motion.button>
+                <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
+                  <motion.button
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    whileHover={{ x: -10 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleStart}
+                    className="bg-black text-white px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-bold rounded-none flex items-center gap-4 md:gap-6 w-full md:w-max shadow-2xl justify-center"
+                  >
+                    ابدأ اختيار تصميمك
+                    <ArrowRight className="w-6 h-6" />
+                  </motion.button>
+
+                  <motion.button
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.7 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => window.open('https://wa.me/201554853093', '_blank')}
+                    className="bg-white text-blue-600 border-2 border-blue-600 px-8 md:px-12 py-4 md:py-6 text-lg md:text-xl font-bold rounded-none flex items-center gap-4 md:gap-6 w-full md:w-max shadow-xl justify-center"
+                  >
+                    اتصل بنا
+                  </motion.button>
+                </div>
               </div>
 
               {/* Right Content: Stylized Preview */}
@@ -453,13 +470,19 @@ export default function App() {
                     onClick={() => setCurrentCategoryIndex(idx)}
                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                       currentCategoryIndex === idx 
-                        ? 'bg-black text-white' 
+                        ? 'bg-black text-white shadow-lg' 
                         : 'bg-gray-50 text-gray-400'
                     }`}
                   >
                     {cat.name}
                   </button>
                 ))}
+                <button
+                  onClick={() => setCurrentPage('summary')}
+                  className="px-6 py-2 rounded-full text-xs font-black bg-blue-600 text-white shadow-lg animate-pulse mr-2"
+                >
+                  لقد انتهيت
+                </button>
               </div>
 
               <div className="flex flex-1 overflow-hidden">
@@ -487,7 +510,7 @@ export default function App() {
                           <cat.icon className="w-5 h-5" />
                         </div>
                         <div className="flex-1 text-right">
-                          <p className="text-xs uppercase tracking-widest font-bold mb-0.5 opacity-60">القسم {idx + 1}</p>
+                          <p className="text-[10px] uppercase tracking-widest font-bold mb-0.5 opacity-60">القسم {idx + 1}</p>
                           <p className="text-sm">{cat.name}</p>
                         </div>
                         {Array.isArray(selections[cat.id]) && (selections[cat.id] as string[]).length > 0 && (
@@ -497,6 +520,19 @@ export default function App() {
                         )}
                       </button>
                     ))}
+
+                    <button
+                      onClick={() => setCurrentPage('summary')}
+                      className="w-full flex items-center gap-4 p-6 rounded-2xl transition-all bg-black text-white shadow-2xl hover:bg-gray-800 mt-8 border border-blue-500/30 group"
+                    >
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-600 text-white group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/50">
+                        <CheckCircle2 className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1 text-right">
+                        <p className="text-[10px] uppercase tracking-widest font-black text-blue-400 mb-0.5">الخطوة النهائية</p>
+                        <p className="text-lg font-black tracking-tight">لقد انتهيت</p>
+                      </div>
+                    </button>
                   </nav>
 
                   <div className="mt-auto p-6 bg-blue-50 rounded-3xl">
@@ -532,19 +568,19 @@ export default function App() {
                       </p>
                     </header>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                       {CATEGORIES[currentCategoryIndex].options.map((option) => (
                         <motion.button
                           key={option.id}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleOptionSelect(CATEGORIES[currentCategoryIndex].id, option.id)}
-                          className={`group relative text-right flex flex-row items-stretch rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 min-h-[160px] ${
+                          className={`group relative text-right flex flex-col items-stretch rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 ${
                             Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id)
-                              ? 'border-blue-600 ring-8 ring-blue-50 shadow-2xl scale-[1.02]' 
+                              ? 'border-blue-600 ring-4 md:ring-8 ring-blue-50 shadow-2xl scale-[1.02]' 
                               : 'border-transparent bg-gray-50'
                           }`}
                         >
-                          <div className="w-1/3 md:w-2/5 shrink-0 relative overflow-hidden">
+                          <div className="aspect-square relative overflow-hidden">
                             <img 
                               src={option.image} 
                               alt={option.name} 
@@ -553,23 +589,22 @@ export default function App() {
                             />
                             {option.color && (
                               <div 
-                                className="absolute top-4 left-4 w-10 h-10 rounded-xl border-4 border-white shadow-2xl"
+                                className="absolute top-3 left-3 w-6 h-6 md:w-8 md:h-8 rounded-lg border-2 md:border-4 border-white shadow-lg"
                                 style={{ backgroundColor: option.color }}
                               />
                             )}
                             {Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id) && (
                               <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-[2px] flex items-center justify-center">
-                                <div className="bg-blue-600 text-white p-3 rounded-full shadow-2xl scale-75">
-                                  <CheckCircle2 className="w-6 h-6" />
+                                <div className="bg-blue-600 text-white p-2 rounded-full shadow-2xl scale-75">
+                                  <CheckCircle2 className="w-5 h-5" />
                                 </div>
                               </div>
                             )}
                           </div>
                           
-                          <div className="p-6 md:p-8 flex flex-col justify-center flex-1">
-                            <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1 opacity-60">تطوير KEMET</p>
-                            <h4 className="text-xl md:text-2xl font-black leading-tight">{option.name}</h4>
-                            <p className="text-xs text-gray-400 mt-2 font-medium">مواصفات عالية الجودة</p>
+                          <div className="p-3 md:p-5 flex flex-col justify-center flex-1">
+                            <p className="text-[8px] md:text-[10px] font-black text-blue-600 uppercase tracking-widest mb-0.5 opacity-60">KEMET</p>
+                            <h4 className="text-sm md:text-lg font-black leading-tight truncate">{option.name}</h4>
                           </div>
                         </motion.button>
                       ))}
@@ -597,7 +632,6 @@ export default function App() {
                       </div>
 
                       <button 
-                        disabled={!Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) || (selections[CATEGORIES[currentCategoryIndex].id] as string[]).length === 0}
                         onClick={() => {
                           if (currentCategoryIndex < CATEGORIES.length - 1) {
                             setCurrentCategoryIndex(prev => prev + 1);
@@ -605,10 +639,12 @@ export default function App() {
                             setCurrentPage('summary');
                           }
                         }}
-                        className="group flex items-center gap-6 bg-black text-white px-10 py-5 rounded-2xl font-black transition-all disabled:opacity-30 shadow-xl hover:bg-gray-800"
+                        className="group flex items-center gap-6 bg-black text-white px-10 py-5 rounded-2xl font-black transition-all shadow-xl hover:bg-gray-800"
                       >
-                        <span className="text-xs uppercase tracking-widest">
-                          {currentCategoryIndex < CATEGORIES.length - 1 ? 'القسم التالي' : 'عرض الملخص'}
+                        <span className="text-xs uppercase tracking-widest text-right">
+                          {(!Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) || (selections[CATEGORIES[currentCategoryIndex].id] as string[]).length === 0)
+                            ? 'تخطي القسم' 
+                            : (currentCategoryIndex < CATEGORIES.length - 1 ? 'القسم التالي' : 'عرض الملخص')}
                         </span>
                         <ChevronLeft className="w-6 h-6 group-hover:-translate-x-2 transition-transform" />
                       </button>
@@ -709,15 +745,15 @@ export default function App() {
                     
                     <div className="relative z-10 text-center md:text-right">
                        <h3 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">هل أعجبك تصميمك؟</h3>
-                       <p className="text-gray-400 max-w-md font-medium text-lg">يمكنك الآن طباعة التصميم كملف PDF ومشاركته مع مهندس التنفيذ أو تعديل بعض الأجزاء.</p>
+                       <p className="text-gray-400 max-w-md font-medium text-lg">إذا كنت تريد أن ترى تصميمك في بيتك، يرجى أن ترسل لهذا الرقم على الواتساب 01554853093</p>
                     </div>
 
                     <div className="relative z-10 flex flex-col sm:flex-row gap-6 w-full md:w-auto">
                       <button 
-                        onClick={() => window.print()}
+                        onClick={() => window.open('https://wa.me/201554853093', '_blank')}
                         className="bg-blue-600 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-xl"
                       >
-                        Print Summary
+                        WhatsApp
                       </button>
                       <button 
                          onClick={() => setCurrentPage('styles')}
@@ -789,10 +825,10 @@ export default function App() {
 
                       <div className="mt-12 pt-12 border-t-2 border-dashed border-gray-100 flex flex-col sm:flex-row gap-6">
                         <button 
-                          onClick={() => window.print()}
+                          onClick={() => window.open('https://wa.me/201554853093', '_blank')}
                           className="flex-1 bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-800 transition-all flex items-center justify-center gap-4 shadow-xl"
                         >
-                          تأكيد وتحميل PDF
+                          تواصل عبر الواتساب
                           <ArrowRight className="w-5 h-5 opacity-50" />
                         </button>
                         <button 
