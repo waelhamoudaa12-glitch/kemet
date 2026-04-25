@@ -17,8 +17,9 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const [mode, setMode] = useState<'login' | 'signup'>('login');
 
   const formatEmail = (phone: string) => {
-    // If it's the admin ID, don't strip characters
+    // If it's the admin ID, use it directly as the email local part
     if (phone === 'WaelWeza123123') return 'WaelWeza123123@kemet.app';
+    // For normal phone numbers, strip non-digits
     const cleaned = phone.replace(/\D/g, '');
     return `${cleaned}@kemet.app`;
   };
@@ -139,7 +140,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             <div className="relative">
               <Phone className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 text-gold-500/30" />
               <input 
-                type="tel" 
+                type="text" 
                 placeholder="01xxxxxxxxx"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}

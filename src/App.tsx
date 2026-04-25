@@ -11,9 +11,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
-import { STYLES, CATEGORIES } from './constants';
+import { subscribeToStyles, subscribeToCategories, syncInitialData } from './lib/contentService';
 import { AuthModal } from './components/AuthModal';
 import { AdminPanel } from './components/AdminPanel';
 import { Category, Option } from './types';
@@ -39,6 +39,10 @@ import {
 type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'mydesign';
 
 const SPRING_TRANSITION = { type: 'spring', stiffness: 300, damping: 30 };
+
+const ICON_MAP: Record<string, any> = {
+  Palette, Layout, Maximize2, DoorOpen, Lamp, Bath, Utensils
+};
 
 const SmoothImage = ({ src, alt, className, referrerPolicy }: { src: string; alt: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }) => {
     const [isLoaded, setIsLoaded] = useState(false);
@@ -82,6 +86,31 @@ export default function App() {
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [selections, setSelections] = useState<Record<string, string | string[]>>({});
   const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const [appStyles, setAppStyles] = useState<any[]>([]);
+  const [appCategories, setAppCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsubStyles = subscribeToStyles(setAppStyles);
+    const unsubCats = subscribeToCategories((cats) => {
+      // Map icons back to components
+      const mappedCats = cats.map(c => ({
+        ...c,
+        icon: ICON_MAP[c.iconName] || Palette
+      }));
+      setAppCategories(mappedCats);
+    });
+
+    return () => {
+      unsubStyles();
+      unsubCats();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
+      syncInitialData();
+    }
+  }, [isAdmin]);
 
   const heroImages = [
     "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=1200",
@@ -94,21 +123,35 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        // Fallback admin check for the number provided
-        if (u.email === 'WaelWeza123123@kemet.app' || u.email === 'waelhamoudaa12@gmail.com') {
+        // Fallback admin check for the ID provided
+        const isAdminEmail = u.email === 'WaelWeza123123@kemet.app' || u.email === 'waelhamoudaa12@gmail.com';
+        
+        if (isAdminEmail) {
           setIsAdmin(true);
-        } else {
-          try {
-            const userDoc = await getDoc(doc(db, 'users', u.uid));
+        }
+
+        try {
+          const userRef = doc(db, 'users', u.uid);
+          const userDoc = await getDoc(userRef);
+          
+          if (userDoc.exists()) {
             const data = userDoc.data();
-            setIsAdmin(data?.isAdmin === true);
+            
+            // If email matches but isAdmin is not set in DB, update it for better persistence
+            if (isAdminEmail && !data.isAdmin) {
+              await updateDoc(userRef, { isAdmin: true });
+              setIsAdmin(true);
+            } else {
+              setIsAdmin(data?.isAdmin === true);
+            }
+
             if (data?.selections) {
               setSelections(data.selections);
             }
-          } catch (err) {
-            console.error("Error fetching admin status:", err);
-            setIsAdmin(false);
           }
+        } catch (err) {
+          console.error("Error fetching admin status:", err);
+          if (!isAdminEmail) setIsAdmin(false);
         }
       } else {
         setIsAdmin(false);
@@ -475,39 +518,39 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-                {STYLES.map((style, idx) => (
-                  <motion.div
-                    key={style.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    onClick={() => handleSelectStyle(style.id)}
-                    className="cursor-pointer group flex flex-row items-stretch bg-egypt-dark border border-gold-500/10 rounded-[2.5rem] overflow-hidden hover:border-gold-500/40 transition-all duration-500 hover:-translate-y-2 shadow-2xl"
-                  >
-                    <div className="w-2/5 shrink-0 overflow-hidden relative">
-                      <img 
-                        src={style.image} 
-                        alt={style.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute inset-0 bg-gold-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center p-4">
-                        <div className="bg-gold-500 text-egypt-black p-4 rounded-full shadow-2xl">
-                          <ArrowRight className="w-6 h-6 -rotate-45" />
+              {appStyles.map((style, idx) => (
+                    <motion.div
+                      key={style.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      onClick={() => handleSelectStyle(style.id)}
+                      className="cursor-pointer group flex flex-row items-stretch bg-egypt-dark border border-gold-500/10 rounded-[2.5rem] overflow-hidden hover:border-gold-500/40 transition-all duration-500 hover:-translate-y-2 shadow-2xl"
+                    >
+                      <div className="w-2/5 shrink-0 overflow-hidden relative">
+                        <SmoothImage 
+                          src={style.image} 
+                          alt={style.name}
+                          className="w-full h-full"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="absolute inset-0 bg-gold-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center p-4">
+                          <div className="bg-gold-500 text-egypt-black p-4 rounded-full shadow-2xl">
+                            <ArrowRight className="w-6 h-6 -rotate-45" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="p-8 flex-1 flex flex-col justify-center">
-                      <div className="flex justify-between items-start mb-4">
-                        <h3 className="text-2xl md:text-3xl font-black text-white">{style.name}</h3>
-                        <span className="text-[10px] font-mono text-gold-500/30 font-black tracking-widest uppercase">KEMET 0{idx+1}</span>
+                      <div className="p-8 flex-1 flex flex-col justify-center">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="text-2xl md:text-3xl font-black text-white">{style.name}</h3>
+                          <span className="text-[10px] font-mono text-gold-500/30 font-black tracking-widest uppercase">KEMET 0{idx+1}</span>
+                        </div>
+                        <p className="text-gold-200/50 font-medium text-sm md:text-base leading-relaxed">
+                          {style.description}
+                        </p>
                       </div>
-                      <p className="text-gold-200/50 font-medium text-sm md:text-base leading-relaxed">
-                        {style.description}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
               </div>
             </motion.div>
           )}
@@ -522,7 +565,7 @@ export default function App() {
             >
               {/* Top Navigation for Mobile/Tablet */}
               <div className="lg:hidden bg-white border-b border-gray-100 px-6 py-4 flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                {CATEGORIES.map((cat, idx) => (
+                {appCategories.map((cat, idx) => (
                   <button
                     key={cat.id}
                     onClick={() => setCurrentCategoryIndex(idx)}
@@ -548,14 +591,14 @@ export default function App() {
 
               <div className="flex flex-1 overflow-hidden">
                 {/* Desktop Category Sidebar */}
-                <div className="hidden lg:flex w-80 bg-egypt-dark border-l border-gold-500/10 p-10 flex-col gap-8 overflow-y-auto">
+                  <div className="hidden lg:flex w-80 bg-egypt-dark border-l border-gold-500/10 p-10 flex-col gap-8 overflow-y-auto">
                   <div className="mb-10">
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-500 block mb-3">النمط المختار</span>
-                    <h3 className="text-2xl font-black text-white">{STYLES.find(s => s.id === selectedStyle)?.name}</h3>
+                    <h3 className="text-2xl font-black text-white">{appStyles.find(s => s.id === selectedStyle)?.name}</h3>
                   </div>
                   
                   <nav className="space-y-4">
-                    {CATEGORIES.map((cat, idx) => (
+                    {appCategories.map((cat, idx) => (
                       <button
                         key={cat.id}
                         onClick={() => setCurrentCategoryIndex(idx)}
@@ -617,15 +660,15 @@ export default function App() {
                     <header className="mb-12 lg:mb-16">
                       <div className="flex items-center justify-end gap-2 text-gold-500 mb-4">
                         <span className="text-xs font-black uppercase tracking-[0.3em]">
-                          {CATEGORIES[currentCategoryIndex].name}
+                          {appCategories[currentCategoryIndex]?.name}
                         </span>
                         {(() => {
-                           const Icon = CATEGORIES[currentCategoryIndex].icon;
+                           const Icon = appCategories[currentCategoryIndex]?.icon || Palette;
                            return <Icon className="w-5 h-5" />;
                         })()}
                       </div>
                       <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-white">
-                        اختر <span className="gold-gradient">{CATEGORIES[currentCategoryIndex].name}</span>
+                        اختر <span className="gold-gradient">{appCategories[currentCategoryIndex]?.name}</span>
                       </h2>
                       <p className="text-gold-200/50 text-sm md:text-lg max-w-2xl ml-auto leading-relaxed font-medium">
                         اختر ما يناسب ذوقك وتطلعاتك الملكية، نحن نضمن لك الجودة والجمال في كل قطعة تحت اسم كيميت.
@@ -633,13 +676,13 @@ export default function App() {
                     </header>
 
                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                       {CATEGORIES[currentCategoryIndex].options.map((option) => (
+                       {appCategories[currentCategoryIndex]?.options.map((option: any) => (
                          <motion.button
                            key={option.id}
                            whileTap={{ scale: 0.98 }}
-                           onClick={() => handleOptionSelect(CATEGORIES[currentCategoryIndex].id, option.id)}
+                           onClick={() => handleOptionSelect(appCategories[currentCategoryIndex].id, option.id)}
                            className={`group relative text-right flex flex-col items-stretch rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 will-change-transform ${
-                             Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id)
+                             Array.isArray(selections[appCategories[currentCategoryIndex].id]) && (selections[appCategories[currentCategoryIndex].id] as string[]).includes(option.id)
                                ? 'border-gold-500 bg-gold-500/10 shadow-[0_0_40px_rgba(212,175,55,0.2)] scale-[1.02]' 
                                : 'border-gold-500/5 bg-egypt-dark hover:border-gold-500/20'
                            }`}
@@ -651,7 +694,7 @@ export default function App() {
                                className="w-full h-full"
                                referrerPolicy="no-referrer"
                              />
-                             {Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id) && (
+                             {Array.isArray(selections[appCategories[currentCategoryIndex].id]) && (selections[appCategories[currentCategoryIndex].id] as string[]).includes(option.id) && (
                                <motion.div 
                                  initial={{ opacity: 0, scale: 0.5 }}
                                  animate={{ opacity: 1, scale: 1 }}
@@ -684,11 +727,11 @@ export default function App() {
                       </button>
                       
                       <div className="flex gap-3">
-                        {CATEGORIES.map((_, i) => (
+                        {appCategories.map((_, i) => (
                           <div 
                             key={i} 
                             className={`h-1.5 rounded-full transition-all duration-500 ${
-                              i === currentCategoryIndex ? 'w-12 bg-blue-600' : 'w-3 bg-gray-100'
+                              i === currentCategoryIndex ? 'w-12 bg-gold-500' : 'w-3 bg-gold-500/10'
                             }`} 
                           />
                         ))}
@@ -696,19 +739,19 @@ export default function App() {
 
                       <button 
                         onClick={() => {
-                          if (currentCategoryIndex < CATEGORIES.length - 1) {
+                          if (currentCategoryIndex < appCategories.length - 1) {
                             setCurrentCategoryIndex(prev => prev + 1);
                           } else {
                             saveSelection(selections, true);
                             setCurrentPage('summary');
                           }
                         }}
-                        className="group flex items-center gap-6 bg-black text-white px-10 py-5 rounded-2xl font-black transition-all shadow-xl hover:bg-gray-800"
+                        className="group flex items-center gap-6 bg-gold-500 text-egypt-black px-10 py-5 rounded-2xl font-black transition-all shadow-xl hover:bg-white"
                       >
                         <span className="text-xs uppercase tracking-widest text-right">
-                          {(!Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) || (selections[CATEGORIES[currentCategoryIndex].id] as string[]).length === 0)
+                          {(!appCategories[currentCategoryIndex] || !Array.isArray(selections[appCategories[currentCategoryIndex].id]) || (selections[appCategories[currentCategoryIndex].id] as string[]).length === 0)
                             ? 'تخطي القسم' 
-                            : (currentCategoryIndex < CATEGORIES.length - 1 ? 'القسم التالي' : 'عرض الملخص')}
+                            : (currentCategoryIndex < appCategories.length - 1 ? 'القسم التالي' : 'عرض الملخص')}
                         </span>
                         <ChevronLeft className="w-6 h-6 group-hover:-translate-x-2 transition-transform" />
                       </button>
@@ -731,7 +774,7 @@ export default function App() {
                  <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8 decoration-2">Personal Selection</span>
                  <h2 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-[0.9] text-white">تصميمي <br/><span className="gold-gradient">الخاص</span></h2>
                  <p className="text-gray-400 text-sm md:text-xl font-medium max-w-2xl leading-relaxed italic">
-                    هذا هو ذوقك الذي يعبر عنك بناءً على طراز {STYLES.find(s => s.id === selections.style)?.name || 'الذي لم يتم تحديده بعد'}. يمكنك استعراض اختياراتك أو البدء من جديد.
+                    هذا هو ذوقك الذي يعبر عنك بناءً على طراز {appStyles.find(s => s.id === selections.style)?.name || 'الذي لم يتم تحديده بعد'}. يمكنك استعراض اختياراتك أو البدء من جديد.
                  </p>
               </div>
 
@@ -750,9 +793,9 @@ export default function App() {
               ) : (
                 <>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    {CATEGORIES.map((cat: Category, idx) => {
+                    {appCategories.map((cat, idx) => {
                       const selectionIds = selections[cat.id] as string[] || [];
-                      const selectedOptions = cat.options.filter(o => selectionIds.includes(o.id));
+                      const selectedOptions = cat.options.filter((o: any) => selectionIds.includes(o.id));
                       
                       return (
                         <motion.div
@@ -862,9 +905,9 @@ export default function App() {
                       </div>
 
                       <div className="space-y-6 flex-1">
-                        {CATEGORIES.map((cat, idx) => {
+                        {appCategories.map((cat, idx) => {
                           const selectionIds = selections[cat.id] as string[] || [];
-                          const selectedOptions = cat.options.filter(o => selectionIds.includes(o.id));
+                          const selectedOptions = cat.options.filter((o: any) => selectionIds.includes(o.id));
                           
                           return (
                             <div key={cat.id} className="flex justify-between items-start py-4 border-b border-gold-500/10 group hover:px-2 transition-all">
@@ -927,21 +970,21 @@ export default function App() {
                           <h3 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">جاهز للتنفيذ!</h3>
                           <p className="text-egypt-black/60 font-medium mb-12 max-w-sm mx-auto leading-relaxed">
                             لقد قمت باختيار أفضل الخامات بناءً على نمط <br/>
-                            <span className="text-white font-black text-2xl">{STYLES.find(s => s.id === selectedStyle)?.name}</span>
+                            <span className="text-white font-black text-2xl">{appStyles.find(s => s.id === selectedStyle)?.name}</span>
                           </p>
                           
                           <div className="bg-white/10 backdrop-blur-md rounded-[2.5rem] p-4 p-8 border border-white/20 mt-auto">
                              <div className="w-full aspect-video rounded-2xl overflow-hidden mb-4 shadow-2xl relative group/style">
                                 <img 
-                                  src={STYLES.find(s => s.id === selectedStyle)?.image} 
+                                  src={appStyles.find(s => s.id === selectedStyle)?.image} 
                                   className="w-full h-full object-cover group-hover/style:scale-110 transition-transform duration-700"
                                   alt="Style"
                                 />
                                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-egypt-black/80 px-4 py-3 flex gap-2 justify-center">
-                                   {CATEGORIES.map(cat => {
+                                   {appCategories.map(cat => {
                                      const sIds = selections[cat.id] as string[] || [];
                                      if (sIds.length === 0) return null;
-                                     const opt = cat.options.find(o => o.id === sIds[0]);
+                                     const opt = cat.options.find((o: any) => o.id === sIds[0]);
                                      if (!opt) return null;
                                      return (
                                        <div key={cat.id} title={opt.name} className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-gold-500 shadow-xl shrink-0 hover:scale-125 transition-transform cursor-pointer will-change-transform">
@@ -960,7 +1003,10 @@ export default function App() {
                 </div>
 
                 <div className="flex justify-center flex-wrap gap-12 py-12 opacity-10 grayscale contrast-125 text-gold-500">
-                   {CATEGORIES.slice(0, 4).map(cat => <cat.icon key={cat.id} className="w-12 h-12" />)}
+                   {appCategories.slice(0, 4).map(cat => {
+                      const Icon = cat.icon || Palette;
+                      return <Icon key={cat.id} className="w-12 h-12" />;
+                   })}
                 </div>
               </div>
             </motion.div>
@@ -969,7 +1015,13 @@ export default function App() {
       </main>
 
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-      {isAdmin && isAdminPanelOpen && <AdminPanel onClose={() => setIsAdminPanelOpen(false)} />}
+      {isAdmin && isAdminPanelOpen && (
+        <AdminPanel 
+          onClose={() => setIsAdminPanelOpen(false)} 
+          appStyles={appStyles}
+          appCategories={appCategories}
+        />
+      )}
     </div>
   );
 }

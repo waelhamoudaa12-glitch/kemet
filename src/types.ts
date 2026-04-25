@@ -9,7 +9,8 @@ export interface Option {
 export interface Category {
   id: string;
   name: string;
-  icon: any;
+  icon?: any;
+  iconName?: string;
   options: Option[];
 }
 

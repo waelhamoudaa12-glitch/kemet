@@ -24,6 +24,41 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "style", "selections"]
+    },
+    "style_config": {
+      "title": "Style Config",
+      "description": "Available style options",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "image": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "image"]
+    },
+    "category_config": {
+      "title": "Category Config",
+      "description": "Available finish categories and their options",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "iconName": { "type": "string" },
+        "options": { 
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "image": { "type": "string" },
+              "color": { "type": "string" }
+            }
+          }
+        },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "iconName", "options"]
     }
   },
   "firestore": {
@@ -34,6 +69,14 @@
     "/designs/{designId}": {
       "schema": "designs",
       "description": "Saved design configurations"
+    },
+    "/app_styles/{styleId}": {
+      "schema": "style_config",
+      "description": "Design style definitions"
+    },
+    "/app_categories/{categoryId}": {
+      "schema": "category_config",
+      "description": "Finish category and option definitions"
     }
   }
 }
