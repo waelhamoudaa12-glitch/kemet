@@ -122,6 +122,7 @@ export function AdminPanel({
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Content management state
   const [editingStyle, setEditingStyle] = useState<any | null>(null);
@@ -143,7 +144,9 @@ export function AdminPanel({
 
     const unsubUsers = onSnapshot(usersQ, (snapshot) => {
       clearTimeout(timeoutId);
+      console.log("AdminPanel: received snapshot with documents count:", snapshot.docs.length);
       const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log("AdminPanel: users data:", usersData);
       // Sort in memory to avoid missing field index issues in Firestore
       const sortedUsers = usersData.sort((a: any, b: any) => {
         const timeA = a.lastUpdated?.toMillis() || a.createdAt?.toMillis() || 0;
@@ -155,6 +158,7 @@ export function AdminPanel({
     }, (err) => {
       clearTimeout(timeoutId);
       console.error("Users fetch error:", err);
+      setFetchError(err.message);
       setLoading(false);
     });
 
@@ -172,10 +176,10 @@ export function AdminPanel({
   }, []);
 
   const filteredItems = allUsers.filter(item => {
-    const name = item.displayName;
-    const phone = item.phoneNumber;
-    return (name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-           (phone?.includes(searchQuery));
+    const name = item.displayName || '';
+    const phone = String(item.phoneNumber || '');
+    return (name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+           (phone.includes(searchQuery));
   });
 
   const handleDeleteItem = async (itemId: string) => {
@@ -486,6 +490,11 @@ export function AdminPanel({
                <Loader2 className="w-12 h-12 animate-spin text-gold-500" />
                <p className="font-black text-gold-500/40 tracking-widest uppercase text-xs">جاري تحميل المستخدمين...</p>
              </div>
+          ) : fetchError ? (
+            <div className="flex flex-col items-center justify-center h-full text-red-500 gap-4">
+              <p className="text-xl font-black">خطأ في تحميل المستخدمين</p>
+              <p className="text-sm">{fetchError}</p>
+            </div>
           ) : allUsers.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gold-500/20 gap-4">
               <User className="w-16 h-16 opacity-20" />
