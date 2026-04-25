@@ -29,19 +29,12 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("handleSubmit started for:", mode, phoneNumber);
     setLoading(true);
     setError('');
     
-    let isTimeout = false;
-    let timeoutId: any;
-    
-    timeoutId = setTimeout(() => {
-      isTimeout = true;
-      setLoading(false);
-      setError('تعذر الاتصال بالخادم. يرجى فتح التطبيق في نافذة جديدة (Open in New Tab) أو إغلاق مانع الإعلانات. تأكد من اتصالك بالإنترنت.');
-    }, 12000);
-
     const email = formatEmail(phoneNumber);
+    console.log("Formatted email:", email);
 
     try {
       if (mode === 'signup') {
@@ -49,40 +42,57 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         
         let userCredential;
         try {
+          console.log("Calling createUserWithEmailAndPassword");
           userCredential = await createUserWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
+          console.log("createUserWithEmailAndPassword succeeded");
         } catch (authErr: any) {
+          console.log("createUserWithEmailAndPassword failed:", authErr.code);
           if (authErr.code === 'auth/email-already-in-use') {
+             console.log("Calling signInWithEmailAndPassword fallback");
              userCredential = await signInWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
+             console.log("signInWithEmailAndPassword succeeded");
           } else {
             throw authErr;
           }
         }
         
+        console.log("Updating profile");
         await updateProfile(userCredential.user, { displayName });
         
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
-          uid: userCredential.user.uid,
-          phoneNumber: phoneNumber.trim(),
-          displayName: displayName,
-          isAdmin: phoneNumber.trim().toLowerCase() === 'waelweza123123', // Admin check
-          createdAt: serverTimestamp(),
-          lastUpdated: serverTimestamp()
-        }, { merge: true });
+        console.log("Setting firestore doc");
+        try {
+          await setDoc(doc(db, 'users', userCredential.user.uid), {
+            uid: userCredential.user.uid,
+            phoneNumber: phoneNumber.trim(),
+            displayName: displayName,
+            isAdmin: phoneNumber.trim().toLowerCase() === 'waelweza123123', // Admin check
+            createdAt: serverTimestamp(),
+            lastUpdated: serverTimestamp()
+          }, { merge: true });
+          console.log("Firestore doc set successfully");
+        } catch (dbErr) {
+          console.error("Firestore DB write error:", dbErr);
+          throw new Error("حدث خطأ أثناء حفظ بيانات المستخدم: " + dbErr);
+        }
                 
       } else {
+        console.log("Calling signInWithEmailAndPassword");
         await signInWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
+        console.log("signInWithEmailAndPassword succeeded");
       }
       
-      clearTimeout(timeoutId);
-      if (!isTimeout) onClose();
+      onClose();
+      console.log("handleSubmit finished successfully");
     } catch (err: any) {
-      if (isTimeout) return;
-      clearTimeout(timeoutId);
-      
       console.error("Auth top-level error:", err);
       
       if (err.code === 'auth/network-request-failed') {
-        setError('خطأ في الشبكة. من فضلك افتح التطبيق في نافذة جديدة (Open in New Tab).');
+        setError('خطأ في الشبكة. تأكد من اتصالك بالإنترنت.');
+        return;
+      }
+      
+      if (err.code === 'auth/too-many-requests') {
+        setError('تم إرسال الكثير من الطلبات، يرجى الانتظار والمحاولة لاحقاً.');
         return;
       }
       
