@@ -23,8 +23,8 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      allow create: if isSignedIn() && (
-        (request.auth.uid == userId && request.resource.data.isAdmin == (request.auth.token.email == 'waelweza123123@kemet.app')) || 
+      allow create: if isSignedIn() && request.auth.uid == userId && (
+        request.resource.data.isAdmin == false || 
         isAdmin()
       );
       allow update: if isAdmin() || (
