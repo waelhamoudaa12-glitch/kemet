@@ -159,21 +159,25 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   </div>
 
                   {/* Selections Breakdown */}
-                  {selectedUser.selections ? (
+                   {selectedUser.selections ? (
                     CATEGORIES.map((cat: Category) => {
-                      const selectedOptionId = selectedUser.selections[cat.id];
-                      const option = cat.options.find((o: Option) => o.id === selectedOptionId);
-                      
-                      if (!option) return null;
+                      const selection = selectedUser.selections[cat.id];
+                      if (!selection) return null;
 
-                      return (
+                      // Normalize to array for consistent handling
+                      const selectedIds = Array.isArray(selection) ? selection : [selection];
+                      const selectedOptions = cat.options.filter((o: Option) => selectedIds.includes(o.id));
+                      
+                      if (selectedOptions.length === 0) return null;
+
+                      return selectedOptions.map((option: Option) => (
                         <motion.div 
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          key={cat.id} 
+                          key={`${cat.id}-${option.id}`} 
                           className="bg-egypt-dark p-6 rounded-[2.5rem] shadow-xl border border-gold-500/10 flex gap-6 hover:border-gold-500/30 transition-all text-right"
                         >
-                          <div className="w-28 h-28 rounded-3xl overflow-hidden shrink-0 shadow-lg border-2 border-gold-500/10">
+                          <div className="w-28 h-28 rounded-3xl overflow-hidden shrink-0 shadow-lg border-2 border-gold-500/10 bg-egypt-black">
                             <img 
                               src={option.image} 
                               alt={option.name} 
@@ -195,7 +199,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                             )}
                           </div>
                         </motion.div>
-                      );
+                      ));
                     })
                   ) : (
                     <div className="md:col-span-2 text-center py-20 text-gold-500/30">
@@ -339,31 +343,45 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                     </div>
 
                     <div className="space-y-4 mb-8">
-                       {/* Quick Image Preview Gallery */}
-                       {u.selections && Object.keys(u.selections).length > 1 && (
-                         <div className="flex flex-wrap justify-center gap-2 mb-4 p-2 bg-egypt-black rounded-2xl border border-gold-500/5">
-                           {Object.entries(u.selections).slice(1, 6).map(([key, val]: [string, any]) => {
-                             const category = CATEGORIES.find(c => c.id === key);
-                             const option = category?.options.find(o => o.id === val);
-                             if (!option) return null;
-                             return (
-                               <div key={key} className="w-10 h-10 rounded-lg overflow-hidden border-2 border-egypt-dark shadow-sm ring-1 ring-gold-500/10">
-                                 <img 
-                                   src={option.image} 
-                                   alt={option.name} 
-                                   className="w-full h-full object-cover"
-                                   referrerPolicy="no-referrer"
-                                 />
-                               </div>
-                             );
-                           })}
-                           {Object.keys(u.selections).length > 6 && (
-                             <div className="w-10 h-10 rounded-lg bg-egypt-dark border border-gold-500/10 flex items-center justify-center text-[10px] font-black text-gold-500/40">
-                               +{Object.keys(u.selections).length - 6}
-                             </div>
-                           )}
-                         </div>
-                       )}
+                        {/* Quick Image Preview Gallery */}
+                        {u.selections && Object.keys(u.selections).length > 0 && (
+                          <div className="flex flex-wrap justify-center gap-2 mb-4 p-2 bg-egypt-black rounded-2xl border border-gold-500/5">
+                            {(() => {
+                               const previewOptions: any[] = [];
+                               Object.entries(u.selections).forEach(([key, val]) => {
+                                 const category = CATEGORIES.find(c => c.id === key);
+                                 if (!category) return;
+                                 const ids = Array.isArray(val) ? val : [val];
+                                 ids.forEach(id => {
+                                   const opt = category.options.find(o => o.id === id);
+                                   if (opt) previewOptions.push({ ...opt, catId: key });
+                                 });
+                               });
+                               
+                               return previewOptions.slice(0, 8).map((option, idx) => (
+                                 <div key={`${option.catId}-${option.id}-${idx}`} className="w-10 h-10 rounded-lg overflow-hidden border-2 border-egypt-dark shadow-sm ring-1 ring-gold-500/10">
+                                   <img 
+                                     src={option.image} 
+                                     alt={option.name} 
+                                     className="w-full h-full object-cover"
+                                     referrerPolicy="no-referrer"
+                                   />
+                                 </div>
+                               ));
+                            })()}
+                            {(() => {
+                               let totalCount = 0;
+                               Object.values(u.selections).forEach(v => {
+                                 totalCount += Array.isArray(v) ? v.length : 1;
+                               });
+                               return totalCount > 8 ? (
+                                 <div className="w-10 h-10 rounded-lg bg-egypt-dark border border-gold-500/10 flex items-center justify-center text-[10px] font-black text-gold-500/40">
+                                   +{totalCount - 8}
+                                 </div>
+                               ) : null;
+                            })()}
+                          </div>
+                        )}
 
                       <div className="flex items-center gap-4 bg-egypt-black p-4 rounded-2xl border border-gold-500/5">
                         <Phone className="w-5 h-5 text-gold-500" />
@@ -373,23 +391,32 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                       {u.selections && (
                         <div className="bg-gold-500/5 p-4 rounded-2xl border border-gold-500/10">
                           <p className="text-[10px] font-black text-gold-500 uppercase tracking-widest mb-2 opacity-40">
-                             Progress
+                             Selection Summary
                           </p>
                           <div className="flex flex-col gap-1">
                             {Object.entries(u.selections).map(([key, val]: [string, any]) => {
-                                const categoryName = key === 'style' ? 'النمط' : 
-                                    (key === 'walls' ? 'الحوائط' : 
-                                    (key === 'floors' ? 'الأرضيات' : 
-                                    (key === 'ceilings' ? 'الأسقف' : 
-                                    (key === 'doors' ? 'الأبواب' : 
-                                    (key === 'lighting' ? 'الإضاءة' : 
-                                    (key === 'bathrooms' ? 'الحمامات' : 
-                                    (key === 'kitchen' ? 'المطبخ' : key)))))));
+                                if (key === 'style') {
+                                    const styleName = STYLES.find(s => s.id === val)?.name || val;
+                                    return (
+                                        <div key={key} className="flex justify-between items-center text-[10px] font-black">
+                                            <span className="text-gold-500/40">النمط:</span>
+                                            <span className="text-white truncate max-w-[120px]">{styleName}</span>
+                                        </div>
+                                    );
+                                }
+
+                                const cat = CATEGORIES.find(c => c.id === key);
+                                if (!cat) return null;
+
+                                const ids = Array.isArray(val) ? val : [val];
+                                const names = cat.options.filter(o => ids.includes(o.id)).map(o => o.name);
                                 
                                 return (
                                     <div key={key} className="flex justify-between items-center text-[10px] font-black">
-                                        <span className="text-gold-500/40">{categoryName}:</span>
-                                        <span className="text-white truncate max-w-[100px]">{Array.isArray(val) ? val.length : val}</span>
+                                        <span className="text-gold-500/40">{cat.name}:</span>
+                                        <span className="text-white truncate max-w-[120px]">
+                                            {names.length > 1 ? `${names.length} عناصر` : (names[0] || '---')}
+                                        </span>
                                     </div>
                                 );
                             })}

@@ -247,7 +247,7 @@ export default function App() {
                       )}
                       <button 
                           onClick={() => signOut(auth)}
-                          className="text-[10px] md:text-sm font-bold text-red-500 hover:text-red-700 border border-red-100 p-2 md:px-4 md:py-2 rounded-full bg-red-50/50 transition-all"
+                          className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/5 transition-all"
                       >
                           <span className="md:hidden">X</span>
                           <span className="hidden md:inline">خروج</span>
@@ -689,13 +689,13 @@ export default function App() {
               </div>
 
               {Object.keys(selections).length === 0 ? (
-                <div className="bg-gray-50 rounded-[3rem] p-12 md:p-24 text-center border-2 border-dashed border-gray-200">
-                   <Palette className="w-16 h-16 mx-auto mb-8 text-gray-300" />
-                   <h3 className="text-3xl font-black mb-4">لا توجد اختيارات بعد</h3>
-                   <p className="text-gray-500 mb-8 max-w-sm mx-auto">ابدأ رحلة تصميم منزلك الآن واختر أفضل الخامات والموديلات.</p>
+                <div className="bg-egypt-dark rounded-[3rem] p-12 md:p-24 text-center border-2 border-dashed border-gold-500/10">
+                   <Palette className="w-16 h-16 mx-auto mb-8 text-gold-500/20" />
+                   <h3 className="text-3xl font-black mb-4 text-white">لا توجد اختيارات بعد</h3>
+                   <p className="text-gold-200/50 mb-8 max-w-sm mx-auto">ابدأ رحلة تصميم منزلك الآن واختر أفضل الخامات والموديلات.</p>
                    <button 
                     onClick={() => setCurrentPage('styles')}
-                    className="bg-black text-white px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-800 transition-all shadow-xl"
+                    className="bg-gold-500 text-egypt-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-gold-600 transition-all shadow-xl shadow-gold-500/20"
                    >
                      ابدأ التصميم الآن
                    </button>
@@ -713,9 +713,9 @@ export default function App() {
                           initial={{ opacity: 0, y: 30 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.1 }}
-                          className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col"
+                          className="group bg-egypt-dark rounded-[2.5rem] border border-gold-500/10 shadow-lg hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col"
                         >
-                          <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                          <div className="p-8 border-b border-gold-500/10 flex justify-between items-center bg-egypt-black/50">
                              <div className="flex items-center gap-2">
                                 <cat.icon className="w-5 h-5 text-gold-500" />
                                 <span className="text-sm text-gold-500 font-black uppercase tracking-widest">{cat.name}</span>
@@ -728,14 +728,14 @@ export default function App() {
                           <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
                             {selectedOptions.length > 0 ? (
                               selectedOptions.map(option => (
-                                <div key={option.id} className="relative group/opt aspect-square rounded-2xl overflow-hidden border border-gray-100">
+                                <div key={option.id} className="relative group/opt aspect-square rounded-2xl overflow-hidden border border-gold-500/10 bg-egypt-black">
                                   <img 
                                     src={option.image} 
                                     alt={option.name}
-                                    className="w-full h-full object-cover group-hover/opt:scale-110 transition-transform"
+                                    className="w-full h-full object-cover group-hover/opt:scale-110 transition-transform opacity-70 group-hover/opt:opacity-100"
                                     referrerPolicy="no-referrer"
                                   />
-                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3 opacity-0 group-hover/opt:opacity-100 transition-opacity">
+                                  <div className="absolute inset-0 bg-egypt-black/40 flex items-end p-3 opacity-0 group-hover/opt:opacity-100 transition-opacity">
                                     <p className="text-[10px] text-white font-bold leading-tight">{option.name}</p>
                                   </div>
                                   {option.color && (
@@ -747,8 +747,8 @@ export default function App() {
                                 </div>
                               ))
                             ) : (
-                              <div className="col-span-full py-8 text-center text-gray-300">
-                                <p className="text-xs font-bold uppercase tracking-widest">لم يتم اختيار أي عنصر</p>
+                              <div className="col-span-full py-8 text-center text-gold-500/20">
+                                <p className="text-xs font-black uppercase tracking-widest">لم يتم اختيار أي عنصر</p>
                               </div>
                             )}
                           </div>
@@ -790,10 +790,10 @@ export default function App() {
               key="summary"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="min-h-screen py-16 px-6 lg:px-20 bg-gray-50/50 overflow-y-auto"
+              className="min-h-screen py-16 px-6 lg:px-20 bg-egypt-black pharaonic-pattern overflow-y-auto"
             >
               <div className="max-w-6xl mx-auto">
-                <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-gray-100 mb-12">
+                <div className="bg-egypt-dark rounded-[3rem] shadow-2xl overflow-hidden border border-gold-500/10 mb-12">
                   <div className="flex flex-col lg:flex-row">
                     {/* Left Side: Receipt Details */}
                     <div className="flex-1 p-8 md:p-16 flex flex-col">
@@ -803,8 +803,8 @@ export default function App() {
                           <h2 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter text-white">ملخص <br/><span className="gold-gradient">اختياراتك</span></h2>
                         </div>
                         <div className="text-left hidden sm:block">
-                           <div className="w-16 h-16 border-4 border-black flex items-center justify-center font-black text-2xl mb-2">K</div>
-                           <p className="text-[10px] font-mono text-gray-300 font-bold">VERIFIED DESIGN</p>
+                           <div className="w-16 h-16 border-4 border-gold-500 flex items-center justify-center font-black text-2xl mb-2 text-gold-500">K</div>
+                           <p className="text-[10px] font-mono text-gold-500/40 font-bold">VERIFIED DESIGN</p>
                         </div>
                       </div>
 
@@ -814,43 +814,49 @@ export default function App() {
                           const selectedOptions = cat.options.filter(o => selectionIds.includes(o.id));
                           
                           return (
-                            <div key={cat.id} className="flex justify-between items-start py-4 border-b border-gray-50 group hover:px-2 transition-all">
+                            <div key={cat.id} className="flex justify-between items-start py-4 border-b border-gold-500/10 group hover:px-2 transition-all">
                                <div className="flex items-start gap-4">
                                   <div className="w-8 h-8 rounded-lg bg-gold-500/5 flex items-center justify-center text-gold-200/30 group-hover:bg-gold-500/10 group-hover:text-gold-500 transition-colors mt-1">
                                      <cat.icon className="w-4 h-4" />
                                   </div>
                                   <div>
-                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-2">{cat.name}</p>
-                                     <div className="flex flex-wrap gap-2">
+                                     <p className="text-[10px] text-gold-200/40 font-bold uppercase tracking-widest leading-none mb-2">{cat.name}</p>
+                                     <div className="flex flex-wrap gap-2 text-right">
                                        {selectedOptions.length > 0 ? (
                                          selectedOptions.map(opt => (
-                                           <span key={opt.id} className="bg-gray-50 px-3 py-1 rounded-full text-xs font-bold border border-gray-100">
-                                              {opt.name}
-                                           </span>
+                                           <div key={opt.id} className="flex items-center gap-2 bg-egypt-black pr-1 pl-3 py-1 rounded-full text-[10px] md:text-xs font-bold border border-gold-500/10 text-gold-500 shadow-lg">
+                                              <img 
+                                                src={opt.image} 
+                                                alt={opt.name} 
+                                                className="w-6 h-6 rounded-full object-cover border border-gold-500/20"
+                                                referrerPolicy="no-referrer"
+                                              />
+                                              <span>{opt.name}</span>
+                                           </div>
                                          ))
                                        ) : (
-                                         <span className="text-gray-300 text-xs italic">لا توجد اختيارات</span>
+                                         <span className="text-gold-500/20 text-xs italic">لا توجد اختيارات</span>
                                        )}
                                      </div>
                                   </div>
                                </div>
-                               <span className="text-[10px] font-mono text-gray-200">#{idx + 1}</span>
+                               <span className="text-[10px] font-mono text-gold-500/20">#{idx + 1}</span>
                             </div>
                           );
                         })}
                       </div>
 
-                      <div className="mt-12 pt-12 border-t-2 border-dashed border-gray-100 flex flex-col sm:flex-row gap-6">
+                      <div className="mt-12 pt-12 border-t-2 border-dashed border-gold-500/10 flex flex-col sm:flex-row gap-6">
                         <button 
                           onClick={() => window.open('https://wa.me/201554853093', '_blank')}
-                          className="flex-1 bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-800 transition-all flex items-center justify-center gap-4 shadow-xl"
+                          className="flex-1 bg-gold-500 text-egypt-black py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gold-600 transition-all flex items-center justify-center gap-4 shadow-xl shadow-gold-500/20"
                         >
                           تواصل عبر الواتساب
                           <ArrowRight className="w-5 h-5 opacity-50" />
                         </button>
                         <button 
                           onClick={() => setCurrentCategoryIndex(0) || setCurrentPage('configurator')}
-                          className="flex-1 border-2 border-gray-100 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:border-black transition-all"
+                          className="flex-1 border-2 border-gold-500/30 text-gold-500 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:border-gold-500 transition-all"
                         >
                           تعديل الاختيارات
                         </button>
@@ -870,12 +876,25 @@ export default function App() {
                           </p>
                           
                           <div className="bg-white/10 backdrop-blur-md rounded-[2.5rem] p-4 p-8 border border-white/20 mt-auto">
-                             <div className="w-full aspect-video rounded-2xl overflow-hidden mb-6 shadow-2xl">
+                             <div className="w-full aspect-video rounded-2xl overflow-hidden mb-4 shadow-2xl relative group/style">
                                 <img 
                                   src={STYLES.find(s => s.id === selectedStyle)?.image} 
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover group-hover/style:scale-110 transition-transform duration-700"
                                   alt="Style"
                                 />
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-egypt-black/80 px-4 py-3 flex gap-2 justify-center">
+                                   {CATEGORIES.map(cat => {
+                                     const sIds = selections[cat.id] as string[] || [];
+                                     if (sIds.length === 0) return null;
+                                     const opt = cat.options.find(o => o.id === sIds[0]);
+                                     if (!opt) return null;
+                                     return (
+                                       <div key={cat.id} title={opt.name} className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-gold-500 shadow-xl shrink-0 hover:scale-125 transition-transform cursor-pointer">
+                                          <img src={opt.image} alt={opt.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                       </div>
+                                     );
+                                   })}
+                                </div>
                              </div>
                              <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">DESIGN CODE</p>
                              <p className="font-mono text-2xl font-black tracking-tighter">KE-OPT-{selectedStyle?.toUpperCase()}</p>
@@ -885,7 +904,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="flex justify-center flex-wrap gap-12 py-12 opacity-30 grayscale contrast-125">
+                <div className="flex justify-center flex-wrap gap-12 py-12 opacity-10 grayscale contrast-125 text-gold-500">
                    {CATEGORIES.slice(0, 4).map(cat => <cat.icon key={cat.id} className="w-12 h-12" />)}
                 </div>
               </div>
