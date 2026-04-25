@@ -33,11 +33,13 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     setError('');
     
     let isTimeout = false;
-    const timeoutId = setTimeout(() => {
+    let timeoutId: any;
+    
+    timeoutId = setTimeout(() => {
       isTimeout = true;
       setLoading(false);
-      setError('تعذر الاتصال. إذا كنت تستخدم هاتفاً داخل متصفح، يرجى فتح التطبيق في نافذة جديدة (Open in New Tab) أو إيقاف مانع الإعلانات.');
-    }, 15000); // 15 seconds timeout
+      setError('تعذر الاتصال بالخادم. يرجى فتح التطبيق في نافذة جديدة (Open in New Tab) أو إغلاق مانع الإعلانات. تأكد من اتصالك بالإنترنت.');
+    }, 12000);
 
     const email = formatEmail(phoneNumber);
 
@@ -49,7 +51,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         
         await setDoc(doc(db, 'users', userCredential.user.uid), {
           uid: userCredential.user.uid,
-          phoneNumber: phoneNumber,
+          phoneNumber: phoneNumber.trim(),
           displayName: displayName,
           isAdmin: phoneNumber.trim().toLowerCase() === 'waelweza123123', // Admin check
           createdAt: serverTimestamp(),
@@ -62,52 +64,75 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       clearTimeout(timeoutId);
       if (!isTimeout) onClose();
     } catch (err: any) {
-      clearTimeout(timeoutId);
       if (isTimeout) return;
+      clearTimeout(timeoutId);
       
-      console.error(err);
+      console.error("Auth top-level error:", err);
+      
+      if (err.code === 'auth/network-request-failed') {
+        setError('خطأ في الشبكة. من فضلك افتح التطبيق في نافذة جديدة (Open in New Tab). لا يمكن تسجيل الدخول من بعض التطبيقات.');
+        return;
+      }
+      
       if (err.code === 'auth/operation-not-allowed') {
         setError('يجب تفعيل (Email/Password) من إعدادات Firebase Console أولاً.');
-      } else if (err.code === 'auth/network-request-failed') {
-        setError('خطأ في الشبكة. يرجى التأكد من اتصالك بالإنترنت، أو فتح التطبيق في نافذة جديدة (Open in New Tab) إذا كنت تتصفح من خلال تطبيق آخر.');
-      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        return;
+      }
+      
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
         if (mode === 'login') {
           setMode('signup');
           setError('هذا الرقم غير مسجل، يرجى كتابة اسمك للتسجيل');
         } else {
           setError('فشل في عملية التسجيل، تأكد من البيانات');
         }
-      } else if (err.code === 'auth/email-already-in-use') {
+        return;
+      }
+      
+      if (err.code === 'auth/email-already-in-use') {
         try {
           const userCredential = await signInWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
           
-          const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
-          if (!userDoc.exists()) {
-            await setDoc(doc(db, 'users', userCredential.user.uid), {
-              uid: userCredential.user.uid,
-              phoneNumber: phoneNumber,
-              displayName: displayName || 'مستخدم جديد',
-              isAdmin: phoneNumber.trim().toLowerCase() === 'waelweza123123',
-              createdAt: serverTimestamp(),
-              lastUpdated: serverTimestamp()
-            });
+          try {
+             const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+             if (!userDoc.exists()) {
+               await setDoc(doc(db, 'users', userCredential.user.uid), {
+                 uid: userCredential.user.uid,
+                 phoneNumber: phoneNumber.trim(),
+                 displayName: displayName || 'مستخدم جديد',
+                 isAdmin: phoneNumber.trim().toLowerCase() === 'waelweza123123',
+                 createdAt: serverTimestamp(),
+                 lastUpdated: serverTimestamp()
+               });
+             }
+          } catch(firestoreErr) {
+             console.error("Firestore sync error after login:", firestoreErr);
+             // We don't fail here, user is logged in
           }
+          
           if (!isTimeout) onClose();
         } catch (loginErr: any) {
+          console.error("Login fallback error:", loginErr);
           if (loginErr.code === 'auth/invalid-credential' || loginErr.code === 'auth/wrong-password') {
-            setError('هذا الحساب مسجل بكلمة مرور قديمة. يرجى التواصل مع الدعم أو المحاولة لاحقاً.');
+            setError('هذا الحساب مسجل بكلمة مرور مختلفة. يرجى التواصل مع الدعم أو المحاولة لاحقاً.');
           } else if (loginErr.code === 'auth/network-request-failed') {
-            setError('خطأ في الشبكة. افتح التطبيق في نافذة جديدة إذا كنت داخل متصفح مدمج.');
+            setError('خطأ في الشبكة. افتح التطبيق في نافذة جديدة أو تأكد من الإنترنت.');
+          } else if (loginErr.code === 'auth/too-many-requests') {
+            setError('محاولات كثيرة خاطئة، يرجى المحاولة لاحقاً');
           } else {
             setError('هذا الرقم مسجل بالفعل، يرجى تسجيل الدخول بدلاً من التسجيل');
           }
         }
-      } else {
-        setError(err.message || 'حدث خطأ غير متوقع');
+        return;
       }
+      
+      setError(err.message || 'حدث خطأ غير متوقع. جرب في نافذة جديدة.');
+      
     } finally {
-      clearTimeout(timeoutId);
-      if (!isTimeout) setLoading(false);
+      if (!isTimeout) {
+         setLoading(false);
+         clearTimeout(timeoutId);
+      }
     }
   };
 

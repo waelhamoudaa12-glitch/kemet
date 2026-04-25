@@ -138,9 +138,11 @@ export function AdminPanel({
 
   useEffect(() => {
     // Listen to users collection
+    let timeoutId: any;
     const usersQ = query(collection(db, 'users'));
 
     const unsubUsers = onSnapshot(usersQ, (snapshot) => {
+      clearTimeout(timeoutId);
       const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       // Sort in memory to avoid missing field index issues in Firestore
       const sortedUsers = usersData.sort((a: any, b: any) => {
@@ -151,11 +153,22 @@ export function AdminPanel({
       setAllUsers(sortedUsers);
       setLoading(false);
     }, (err) => {
+      clearTimeout(timeoutId);
       console.error("Users fetch error:", err);
       setLoading(false);
     });
 
-    return () => unsubUsers();
+    timeoutId = setTimeout(() => {
+       if (loading) {
+         setLoading(false);
+         alert("تأخر الاتصال بقاعدة البيانات. يرجى فتح التطبيق في نافذة جديدة (Open in New Tab) أو التأكد من اتصالك بالإنترنت.");
+       }
+    }, 10000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      unsubUsers();
+    };
   }, []);
 
   const filteredItems = allUsers.filter(item => {
