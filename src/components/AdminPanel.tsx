@@ -2,31 +2,49 @@ import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, deleteDoc, orderBy } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles, Search, ChevronLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles, Search, ChevronLeft, ArrowRight, CheckCircle2, Palette } from 'lucide-react';
 import { STYLES, CATEGORIES } from '../constants';
 import { Category, Option } from '../types';
 
 export function AdminPanel({ onClose }: { onClose: () => void }) {
-  const [users, setUsers] = useState<any[]>([]);
+  const [designs, setDesigns] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [activeTab, setActiveTab] = useState<'designs' | 'users'>('designs');
 
   useEffect(() => {
-    // Order by createdAt descending so newest designs appear first
-    const q = query(collection(db, 'designs'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const designsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setUsers(designsData); // Reusing 'users' state variable but it now holds design documents
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+    // Listen to BOTH collections
+    const designsQ = query(collection(db, 'designs'), orderBy('createdAt', 'desc'));
+    const usersQ = query(collection(db, 'users'), orderBy('lastUpdated', 'desc'));
 
-  const filteredUsers = users.filter(u => 
-    (u.userName?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (u.userPhone?.includes(searchQuery))
-  );
+    const unsubDesigns = onSnapshot(designsQ, (snapshot) => {
+      const designsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), isSubmission: true }));
+      setDesigns(designsData);
+      if (activeTab === 'designs') setLoading(false);
+    });
+
+    const unsubUsers = onSnapshot(usersQ, (snapshot) => {
+      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), isSubmission: false }));
+      setAllUsers(usersData);
+      if (activeTab === 'users') setLoading(false);
+    });
+
+    return () => {
+      unsubDesigns();
+      unsubUsers();
+    };
+  }, [activeTab]);
+
+  const currentList = activeTab === 'designs' ? designs : allUsers;
+
+  const filteredItems = currentList.filter(item => {
+    const name = activeTab === 'designs' ? item.userName : item.displayName;
+    const phone = activeTab === 'designs' ? item.userPhone : item.phoneNumber;
+    return (name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+           (phone?.includes(searchQuery));
+  });
 
   const handleDeleteUser = async (designId: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذا التصميم نهائياً؟')) {
@@ -39,7 +57,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
         const errInfo = {
           error: error.message,
           operationType: 'delete',
-          path: `users/${userId}`,
+          path: `designs/${designId}`,
           authInfo: {
             userId: auth.currentUser?.uid,
             email: auth.currentUser?.email,
@@ -191,8 +209,23 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <h1 className="text-xl md:text-3xl font-black tracking-tighter">لوحة التحكم</h1>
-            <p className="text-gray-400 text-[10px] md:text-sm font-medium">إدارة {users.length} تصميم مرسل من المستخدمين</p>
+            <p className="text-gray-400 text-[10px] md:text-sm font-medium">إدارة {currentList.length} عنصر ({activeTab === 'designs' ? 'تصميمات مرسلة' : 'مستخدمين مسجلين'})</p>
           </div>
+        </div>
+
+        <div className="flex bg-gray-50 p-1 rounded-2xl mx-8">
+          <button 
+            onClick={() => { setActiveTab('designs'); setLoading(true); }}
+            className={`flex-1 py-3 px-6 rounded-xl text-xs font-black transition-all ${activeTab === 'designs' ? 'bg-white shadow-md text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            التصميمات النهائية
+          </button>
+          <button 
+            onClick={() => { setActiveTab('users'); setLoading(true); }}
+            className={`flex-1 py-3 px-6 rounded-xl text-xs font-black transition-all ${activeTab === 'users' ? 'bg-white shadow-md text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            كل المستخدمين
+          </button>
         </div>
 
         <div className="flex-1 max-w-md mx-8 hidden md:block">
@@ -233,14 +266,14 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
         {loading ? (
            <div className="flex flex-col items-center justify-center h-full gap-6">
              <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
-             <p className="font-bold text-gray-400 tracking-widest uppercase text-xs">Fetching Designs...</p>
+             <p className="font-bold text-gray-400 tracking-widest uppercase text-xs">Fetching {activeTab === 'designs' ? 'Designs' : 'Users'}...</p>
            </div>
-        ) : users.length === 0 ? (
+        ) : currentList.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
             <CheckCircle2 className="w-16 h-16 opacity-20" />
-            <p className="text-xl font-bold">لا يوجد تصميمات مرسلة بعد</p>
+            <p className="text-xl font-bold">لا يوجد {activeTab === 'designs' ? 'تصميمات مرسلة' : 'مستخدمين'} بعد</p>
           </div>
-        ) : filteredUsers.length === 0 ? (
+        ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
             <Search className="w-16 h-16 opacity-20" />
             <p className="text-xl font-bold">لم يتم العثور على نتائج للبحث "{searchQuery}"</p>
@@ -254,8 +287,13 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             <AnimatePresence mode="popLayout">
-              {filteredUsers.map((u) => {
-                const isNew = isNewUser(u.createdAt);
+              {filteredItems.map((u) => {
+                const isNew = isNewUser(u.createdAt || u.lastUpdated);
+                const name = activeTab === 'designs' ? u.userName : u.displayName;
+                const phone = activeTab === 'designs' ? u.userPhone : u.phoneNumber;
+                const dateLabel = activeTab === 'designs' ? 'أرسل في' : 'آخر تحديث';
+                const timestamp = activeTab === 'designs' ? u.createdAt : u.lastUpdated;
+
                 return (
                   <motion.div 
                     layout
@@ -263,7 +301,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    onClick={() => setSelectedUser(u)}
+                    onClick={() => setSelectedUser({ ...u, userName: name, userPhone: phone })}
                     className={`p-8 bg-white border ${isNew ? 'border-blue-200 ring-4 ring-blue-50' : 'border-gray-100'} rounded-[2rem] shadow-xl relative group transition-all hover:translate-y-[-4px] cursor-pointer`}
                   >
                     {isNew && (
@@ -274,22 +312,26 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                     )}
                     
                     <div className="flex flex-col items-center text-center mb-10 mt-4">
-                      <div className={`w-20 h-20 bg-blue-600 flex items-center justify-center rounded-3xl mb-4 shadow-inner`}>
-                        <Palette className={`w-10 h-10 text-white`} />
+                      <div className={`w-20 h-20 ${activeTab === 'designs' ? 'bg-blue-600' : 'bg-gray-100'} flex items-center justify-center rounded-3xl mb-4 shadow-inner`}>
+                        {activeTab === 'designs' ? <Palette className="w-10 h-10 text-white" /> : <User className="w-10 h-10 text-gray-400" />}
                       </div>
-                      <h3 className="text-2xl font-black tracking-tight">{u.userName}</h3>
-                      <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full mt-2">USER SUBMISSION</span>
+                      <h3 className="text-2xl font-black tracking-tight">{name || '---'}</h3>
+                      <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full mt-2">
+                        {activeTab === 'designs' ? 'FINAL SUBMISSION' : 'MEMBER PROFILE'}
+                      </span>
                     </div>
 
                     <div className="space-y-4 mb-10">
                       <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100/50">
                         <Phone className="w-5 h-5 text-blue-500" />
-                        <span className="font-mono font-bold text-lg">{u.userPhone}</span>
+                        <span className="font-mono font-bold text-lg">{phone || '---'}</span>
                       </div>
                       
                       {u.selections && (
                         <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50">
-                          <p className="text-[10px] font-black text-blue-600 uppercase mb-2">Selected Design</p>
+                          <p className="text-[10px] font-black text-blue-600 uppercase mb-2">
+                            {activeTab === 'designs' ? 'Final Selections' : 'Draft Progress'}
+                          </p>
                           <div className="flex flex-col gap-1">
                             {Object.entries(u.selections).map(([key, val]: [string, any]) => {
                                 const categoryName = key === 'style' ? 'النمط' : 
@@ -304,7 +346,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                                 return (
                                     <div key={key} className="flex justify-between items-center text-[10px] font-bold">
                                         <span className="text-gray-400">{categoryName}:</span>
-                                        <span className="text-blue-800">{val}</span>
+                                        <span className="text-blue-800 truncate max-w-[100px]">{Array.isArray(val) ? val.length : val}</span>
                                     </div>
                                 );
                             })}
@@ -314,17 +356,20 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
 
                       <div className="flex items-center gap-4 text-xs text-gray-400 px-2">
                         <Calendar className="w-4 h-4" />
-                        <span>انضم: {u.createdAt?.toDate()?.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' }) || '---'}</span>
+                        <span>{dateLabel}: {timestamp?.toDate()?.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' }) || '---'}</span>
                       </div>
                     </div>
 
                     {!u.isAdmin ? (
                       <button 
-                        onClick={() => handleDeleteUser(u.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteUser(u.id);
+                        }}
                         className="w-full py-5 bg-red-50 text-red-500 font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3 active:scale-95"
                       >
                         <Trash2 className="w-5 h-5" />
-                        Delete Account
+                        حذف السجل
                       </button>
                     ) : (
                       <div className="py-5 bg-gray-50 text-gray-300 font-black text-xs uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed">
@@ -337,7 +382,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               })}
             </AnimatePresence>
           </div>
-        )}
+        ) /* Closing map and list */ }
       </main>
     </div>
   );
