@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, deleteDoc, orderBy } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles, Search } from 'lucide-react';
+import { Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles, Search, ChevronLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { STYLES, CATEGORIES } from '../constants';
 
 export function AdminPanel({ onClose }: { onClose: () => void }) {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
 
   useEffect(() => {
     // Order by createdAt descending so newest appear first
@@ -59,6 +61,138 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[150] bg-white flex flex-col font-sans">
+      <AnimatePresence>
+        {selectedUser && (
+          <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            className="fixed inset-0 z-[160] bg-white flex flex-col font-sans"
+          >
+            <header className="p-4 md:p-8 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => setSelectedUser(null)}
+                  className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-gray-100 rounded-full transition-all"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-black tracking-tight">{selectedUser.displayName}</h2>
+                  <p className="text-gray-400 text-xs md:text-sm font-medium">تصميم المستخدم النهائي (Final Ticket)</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedUser(null)}
+                className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-gray-100 rounded-full transition-all text-gray-400"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </header>
+
+            <main className="flex-1 overflow-y-auto p-4 md:p-12 lg:p-24 bg-gray-50/50">
+              <div className="max-w-4xl mx-auto space-y-12">
+                {/* User Info Card */}
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col md:flex-row gap-8 items-center">
+                  <div className="w-24 h-24 bg-blue-600 flex items-center justify-center rounded-3xl shadow-lg">
+                    <User className="w-12 h-12 text-white" />
+                  </div>
+                  <div className="flex-1 text-center md:text-right">
+                    <h3 className="text-3xl font-black mb-2">{selectedUser.displayName}</h3>
+                    <div className="flex flex-wrap justify-center md:justify-end gap-4 text-gray-500 font-bold">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-blue-500" />
+                        <span className="font-mono">{selectedUser.phoneNumber}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-blue-500" />
+                        <span>{selectedUser.createdAt?.toDate()?.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Design Summary Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Selected Style */}
+                  <div className="md:col-span-2 bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden group">
+                    <div className="relative h-64 overflow-hidden">
+                      {selectedUser.selections?.style && (
+                        <>
+                          <img 
+                            src={STYLES.find(s => s.id === selectedUser.selections.style)?.image} 
+                            alt="Selected Style"
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+                            <span className="text-blue-400 font-black text-xs uppercase tracking-widest mb-2">النمط المختار</span>
+                            <h4 className="text-3xl font-black text-white">{STYLES.find(s => s.id === selectedUser.selections.style)?.name || selectedUser.selections.style}</h4>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Selections Breakdown */}
+                  {CATEGORIES.map((cat) => {
+                    const selectedOptionId = selectedUser.selections?.[cat.id];
+                    const option = cat.options.find(o => o.id === selectedOptionId);
+                    
+                    if (!option) return null;
+
+                    return (
+                      <div key={cat.id} className="bg-white p-6 rounded-[2rem] shadow-lg border border-gray-100 flex gap-6">
+                        <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 shadow-md">
+                          <img 
+                            src={option.image} 
+                            alt={option.name} 
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex flex-col justify-center">
+                          <div className="flex items-center gap-2 text-blue-600 mb-1">
+                            <cat.icon className="w-4 h-4" />
+                            <span className="text-[10px] font-black uppercase tracking-wider">{cat.name}</span>
+                          </div>
+                          <h5 className="text-xl font-bold text-gray-900">{option.name}</h5>
+                          {option.color && (
+                             <div className="flex items-center gap-2 mt-2">
+                               <div className="w-4 h-4 rounded-full border border-gray-200" style={{ backgroundColor: option.color }} />
+                               <span className="text-[10px] text-gray-400 font-bold uppercase">{option.color}</span>
+                             </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Final QR/Ticket Placeholder */}
+                <div className="bg-blue-600 p-12 rounded-[3rem] text-center text-white relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
+                  
+                  <CheckCircle2 className="w-16 h-16 mx-auto mb-6 opacity-80" />
+                  <h4 className="text-3xl font-black mb-4 tracking-tight">تم عرض التذكرة النهائية بنجاح</h4>
+                  <p className="text-blue-100 font-medium max-w-md mx-auto mb-8">
+                    هذه هي الاختيارات التي قام بها {selectedUser.displayName}. يمكنك الآن البدء في مراجعة التصميم وتنفيذه.
+                  </p>
+
+                  <button 
+                    onClick={() => window.print()}
+                    className="bg-white text-blue-600 px-10 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl active:scale-95"
+                  >
+                    Download as PDF
+                  </button>
+                </div>
+              </div>
+            </main>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <header className="p-4 md:p-8 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-4 md:gap-6">
           <div className="bg-blue-600 p-2 md:p-3 rounded-2xl">
@@ -138,7 +272,8 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    className={`p-8 bg-white border ${isNew ? 'border-blue-200 ring-4 ring-blue-50' : 'border-gray-100'} rounded-[2rem] shadow-xl relative group transition-all hover:translate-y-[-4px]`}
+                    onClick={() => setSelectedUser(u)}
+                    className={`p-8 bg-white border ${isNew ? 'border-blue-200 ring-4 ring-blue-50' : 'border-gray-100'} rounded-[2rem] shadow-xl relative group transition-all hover:translate-y-[-4px] cursor-pointer`}
                   >
                     {isNew && (
                       <div className="absolute top-6 right-6 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1 shadow-lg animate-bounce">
