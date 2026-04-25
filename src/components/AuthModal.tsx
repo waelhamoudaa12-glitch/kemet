@@ -32,6 +32,13 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     setLoading(true);
     setError('');
     
+    let isTimeout = false;
+    const timeoutId = setTimeout(() => {
+      isTimeout = true;
+      setLoading(false);
+      setError('تعذر الاتصال. إذا كنت تستخدم هاتفاً داخل متصفح، يرجى فتح التطبيق في نافذة جديدة (Open in New Tab) أو إيقاف مانع الإعلانات.');
+    }, 15000); // 15 seconds timeout
+
     const email = formatEmail(phoneNumber);
 
     try {
@@ -51,11 +58,18 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       } else {
         await signInWithEmailAndPassword(auth, email, INTERNAL_PASSWORD);
       }
-      onClose();
+      
+      clearTimeout(timeoutId);
+      if (!isTimeout) onClose();
     } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (isTimeout) return;
+      
       console.error(err);
       if (err.code === 'auth/operation-not-allowed') {
         setError('يجب تفعيل (Email/Password) من إعدادات Firebase Console أولاً.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('خطأ في الشبكة. يرجى التأكد من اتصالك بالإنترنت، أو فتح التطبيق في نافذة جديدة (Open in New Tab) إذا كنت تتصفح من خلال تطبيق آخر.');
       } else if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
         if (mode === 'login') {
           setMode('signup');
@@ -78,10 +92,12 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               lastUpdated: serverTimestamp()
             });
           }
-          onClose();
+          if (!isTimeout) onClose();
         } catch (loginErr: any) {
           if (loginErr.code === 'auth/invalid-credential' || loginErr.code === 'auth/wrong-password') {
             setError('هذا الحساب مسجل بكلمة مرور قديمة. يرجى التواصل مع الدعم أو المحاولة لاحقاً.');
+          } else if (loginErr.code === 'auth/network-request-failed') {
+            setError('خطأ في الشبكة. افتح التطبيق في نافذة جديدة إذا كنت داخل متصفح مدمج.');
           } else {
             setError('هذا الرقم مسجل بالفعل، يرجى تسجيل الدخول بدلاً من التسجيل');
           }
@@ -90,7 +106,8 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         setError(err.message || 'حدث خطأ غير متوقع');
       }
     } finally {
-      setLoading(false);
+      clearTimeout(timeoutId);
+      if (!isTimeout) setLoading(false);
     }
   };
 

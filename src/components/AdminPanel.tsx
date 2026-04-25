@@ -150,7 +150,10 @@ export function AdminPanel({
       });
       setAllUsers(sortedUsers);
       setLoading(false);
-    }, (err) => console.error("Users fetch error:", err));
+    }, (err) => {
+      console.error("Users fetch error:", err);
+      setLoading(false);
+    });
 
     return () => unsubUsers();
   }, []);
