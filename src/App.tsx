@@ -95,7 +95,7 @@ export default function App() {
       setUser(u);
       if (u) {
         // Fallback admin check for the number provided
-        if (u.email === '0101234567123@kemet.app' || u.email === 'waelhamoudaa12@gmail.com') {
+        if (u.email === 'WaelWeza123123@kemet.app' || u.email === 'waelhamoudaa12@gmail.com') {
           setIsAdmin(true);
         } else {
           try {
