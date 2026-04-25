@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -37,6 +37,33 @@ import {
 // --- Types ---
 
 type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'mydesign';
+
+const SPRING_TRANSITION = { type: 'spring', stiffness: 300, damping: 30 };
+
+const SmoothImage = ({ src, alt, className, referrerPolicy }: { src: string; alt: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }) => {
+    const [isLoaded, setIsLoaded] = useState(false);
+    return (
+        <div className={`relative overflow-hidden ${className}`}>
+            <AnimatePresence mode="wait">
+                {!isLoaded && (
+                    <motion.div 
+                        key="placeholder"
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-gold-500/5 animate-pulse z-10"
+                    />
+                )}
+            </AnimatePresence>
+            <img
+                src={src}
+                alt={alt}
+                onLoad={() => setIsLoaded(true)}
+                className={`w-full h-full object-cover transition-all duration-700 ease-out ${isLoaded ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-110 blur-xl'}`}
+                referrerPolicy={referrerPolicy}
+            />
+        </div>
+    );
+};
 
 interface Selection {
   style: string;
@@ -302,7 +329,7 @@ export default function App() {
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="text-base md:text-xl lg:text-2xl text-gold-200/50 mb-12 max-w-md font-medium leading-relaxed"
+                  className="text-base md:text-xl lg:text-2xl text-white mb-12 max-w-md font-medium leading-relaxed"
                 >
                   نحن هنا لنحول جدران منزلك إلى لوحة فنية ملكية. اختر خاماتك وتفاصيلك بفخامة الفراعنة وعراقة كيميت.
                 </motion.p>
@@ -333,6 +360,17 @@ export default function App() {
                     اتصل بنا
                   </motion.button>
                 </div>
+
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.8 }}
+                  className="mt-12 pt-8 border-t border-gold-500/10"
+                >
+                  <p className="text-xs md:text-sm text-white font-black tracking-widest uppercase">
+                    لعمل موقع مثل هذا يرجي التواصل عبر نفس الرقم المكتوب
+                  </p>
+                </motion.div>
               </div>
 
               {/* Right Content: Stylized Preview */}
@@ -345,16 +383,20 @@ export default function App() {
                   className="relative w-full max-w-lg aspect-[3/4]"
                 >
                    <AnimatePresence mode="wait">
-                     <motion.img 
-                      key={heroImageIndex}
-                      initial={{ opacity: 0, scale: 1.2 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 2, ease: "easeInOut" }}
-                      src={heroImages[heroImageIndex]} 
-                      className="absolute inset-0 w-full h-full object-cover shadow-[0_0_80px_rgba(212,175,55,0.1)] border-8 border-gold-500/10 rounded-[3rem]"
-                      alt="Architecture"
-                    />
+                     <motion.div 
+                        key={heroImageIndex}
+                        initial={{ opacity: 0, scale: 1.1 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 1.5, ease: "easeInOut" }}
+                        className="absolute inset-0 w-full h-full shadow-[0_0_80px_rgba(212,175,55,0.1)] border-8 border-gold-500/10 rounded-[3rem] overflow-hidden"
+                     >
+                       <SmoothImage 
+                         src={heroImages[heroImageIndex]} 
+                         className="w-full h-full"
+                         alt="Architecture"
+                       />
+                     </motion.div>
                    </AnimatePresence>
                   <div className="absolute -bottom-8 -right-8 bg-gold-500 p-10 shadow-3xl max-w-xs z-10 rounded-[2rem] border-4 border-egypt-black">
                       <p className="font-mono text-[10px] text-egypt-black font-black mb-2 tracking-[0.4em]">KEMET / 0{heroImageIndex + 1}</p>
@@ -590,33 +632,38 @@ export default function App() {
                       </p>
                     </header>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                      {CATEGORIES[currentCategoryIndex].options.map((option) => (
-                        <motion.button
-                          key={option.id}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleOptionSelect(CATEGORIES[currentCategoryIndex].id, option.id)}
-                          className={`group relative text-right flex flex-col items-stretch rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 ${
-                            Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id)
-                              ? 'border-gold-500 bg-gold-500/10 shadow-[0_0_40px_rgba(212,175,55,0.2)] scale-[1.02]' 
-                              : 'border-gold-500/5 bg-egypt-dark hover:border-gold-500/20'
-                          }`}
-                        >
-                          <div className="aspect-square relative overflow-hidden">
-                            <img 
-                              src={option.image} 
-                              alt={option.name} 
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                              referrerPolicy="no-referrer"
-                            />
-                            {Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id) && (
-                              <div className="absolute inset-0 bg-gold-500/20 backdrop-blur-[2px] flex items-center justify-center">
-                                 <div className="bg-gold-500 text-egypt-black p-2 rounded-full shadow-2xl scale-125">
-                                  <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                       {CATEGORIES[currentCategoryIndex].options.map((option) => (
+                         <motion.button
+                           key={option.id}
+                           whileTap={{ scale: 0.98 }}
+                           onClick={() => handleOptionSelect(CATEGORIES[currentCategoryIndex].id, option.id)}
+                           className={`group relative text-right flex flex-col items-stretch rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 will-change-transform ${
+                             Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id)
+                               ? 'border-gold-500 bg-gold-500/10 shadow-[0_0_40px_rgba(212,175,55,0.2)] scale-[1.02]' 
+                               : 'border-gold-500/5 bg-egypt-dark hover:border-gold-500/20'
+                           }`}
+                         >
+                           <div className="aspect-square relative overflow-hidden bg-egypt-black">
+                             <SmoothImage 
+                               src={option.image} 
+                               alt={option.name} 
+                               className="w-full h-full"
+                               referrerPolicy="no-referrer"
+                             />
+                             {Array.isArray(selections[CATEGORIES[currentCategoryIndex].id]) && (selections[CATEGORIES[currentCategoryIndex].id] as string[]).includes(option.id) && (
+                               <motion.div 
+                                 initial={{ opacity: 0, scale: 0.5 }}
+                                 animate={{ opacity: 1, scale: 1 }}
+                                 transition={SPRING_TRANSITION}
+                                 className="absolute inset-0 bg-gold-500/20 backdrop-blur-[2px] flex items-center justify-center z-20"
+                               >
+                                  <div className="bg-gold-500 text-egypt-black p-2 rounded-full shadow-2xl scale-125">
+                                   <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
+                                 </div>
+                               </motion.div>
+                             )}
+                           </div>
                           
                           <div className="p-3 md:p-5 flex flex-col justify-center flex-1">
                             <p className="text-[8px] md:text-[10px] font-black text-gold-500 uppercase tracking-widest mb-0.5 opacity-60">KEMET ROYAL</p>
@@ -712,30 +759,36 @@ export default function App() {
                           key={cat.id}
                           initial={{ opacity: 0, y: 30 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                          className="group bg-egypt-dark rounded-[2.5rem] border border-gold-500/10 shadow-lg hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col"
+                          transition={{ ...SPRING_TRANSITION, delay: idx * 0.05 }}
+                          className="group bg-egypt-dark rounded-[2.5rem] border border-gold-500/10 shadow-lg hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col will-change-transform"
                         >
                           <div className="p-8 border-b border-gold-500/10 flex justify-between items-center bg-egypt-black/50">
                              <div className="flex items-center gap-2">
                                 <cat.icon className="w-5 h-5 text-gold-500" />
                                 <span className="text-sm text-gold-500 font-black uppercase tracking-widest">{cat.name}</span>
                              </div>
-                             <span className="bg-gold-500 text-egypt-black text-[10px] px-2 py-1 rounded-full font-bold">
-                               {selectedOptions.length} اختيارات
-                             </span>
+                             <button 
+                                onClick={() => {
+                                  setCurrentCategoryIndex(idx);
+                                  setCurrentPage('configurator');
+                                }}
+                                className="w-10 h-10 rounded-full border border-gold-500/10 flex items-center justify-center text-gold-500 hover:bg-gold-500 hover:text-egypt-black transition-all"
+                             >
+                                <ChevronRight className="w-4 h-4" />
+                             </button>
                           </div>
 
                           <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
                             {selectedOptions.length > 0 ? (
                               selectedOptions.map(option => (
                                 <div key={option.id} className="relative group/opt aspect-square rounded-2xl overflow-hidden border border-gold-500/10 bg-egypt-black">
-                                  <img 
+                                  <SmoothImage 
                                     src={option.image} 
                                     alt={option.name}
-                                    className="w-full h-full object-cover group-hover/opt:scale-110 transition-transform opacity-70 group-hover/opt:opacity-100"
+                                    className="w-full h-full"
                                     referrerPolicy="no-referrer"
                                   />
-                                  <div className="absolute inset-0 bg-egypt-black/40 flex items-end p-3 opacity-0 group-hover/opt:opacity-100 transition-opacity">
+                                  <div className="absolute inset-0 bg-egypt-black/40 flex items-end p-3 opacity-0 group-hover/opt:opacity-100 transition-opacity z-20">
                                     <p className="text-[10px] text-white font-bold leading-tight">{option.name}</p>
                                   </div>
                                   {option.color && (
@@ -824,13 +877,15 @@ export default function App() {
                                      <div className="flex flex-wrap gap-2 text-right">
                                        {selectedOptions.length > 0 ? (
                                          selectedOptions.map(opt => (
-                                           <div key={opt.id} className="flex items-center gap-2 bg-egypt-black pr-1 pl-3 py-1 rounded-full text-[10px] md:text-xs font-bold border border-gold-500/10 text-gold-500 shadow-lg">
-                                              <img 
-                                                src={opt.image} 
-                                                alt={opt.name} 
-                                                className="w-6 h-6 rounded-full object-cover border border-gold-500/20"
-                                                referrerPolicy="no-referrer"
-                                              />
+                                           <div key={opt.id} className="flex items-center gap-2 bg-egypt-black pr-1 pl-3 py-1 rounded-full text-[10px] md:text-xs font-bold border border-gold-500/10 text-gold-500 shadow-lg group-hover:scale-105 transition-transform">
+                                              <div className="w-6 h-6 rounded-full overflow-hidden border border-gold-500/20">
+                                                <SmoothImage 
+                                                  src={opt.image} 
+                                                  alt={opt.name} 
+                                                  className="w-full h-full"
+                                                  referrerPolicy="no-referrer"
+                                                />
+                                              </div>
                                               <span>{opt.name}</span>
                                            </div>
                                          ))
@@ -889,8 +944,8 @@ export default function App() {
                                      const opt = cat.options.find(o => o.id === sIds[0]);
                                      if (!opt) return null;
                                      return (
-                                       <div key={cat.id} title={opt.name} className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-gold-500 shadow-xl shrink-0 hover:scale-125 transition-transform cursor-pointer">
-                                          <img src={opt.image} alt={opt.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                       <div key={cat.id} title={opt.name} className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-gold-500 shadow-xl shrink-0 hover:scale-125 transition-transform cursor-pointer will-change-transform">
+                                          <SmoothImage src={opt.image} alt={opt.name} className="w-full h-full" referrerPolicy="no-referrer" />
                                        </div>
                                      );
                                    })}
