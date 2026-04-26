@@ -610,12 +610,12 @@ export default function App() {
                           </div>
                         </div>
                       </div>
-                      <div className="p-8 flex-1 flex flex-col justify-center">
-                        <div className="flex justify-between items-start mb-4">
-                          <h3 className="text-2xl md:text-3xl font-black text-white">{style.name}</h3>
+                      <div className="p-4 md:p-6 flex-1 flex flex-col justify-center">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-xl md:text-2xl font-black text-white">{style.name}</h3>
                           <span className="text-[10px] font-mono text-gold-500/30 font-black tracking-widest uppercase">KEMET 0{idx+1}</span>
                         </div>
-                        <p className="text-gold-200/50 font-medium text-sm md:text-base leading-relaxed">
+                        <p className="text-gold-200/50 font-medium text-xs md:text-sm leading-relaxed">
                           {style.description}
                         </p>
                       </div>
