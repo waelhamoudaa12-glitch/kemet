@@ -162,12 +162,14 @@ export function AdminPanel({
     console.log("Saving style data...", styleData);
     try {
       const id = styleData.id || `style_${Date.now()}`;
-      await setDoc(doc(db, 'app_styles', id), {
+      const dataToSave = {
         ...styleData,
         id,
         order: styleData.order ?? Date.now(),
         updatedAt: new Date()
-      }, { merge: true });
+      };
+      console.log("Data to save:", dataToSave);
+      await setDoc(doc(db, 'app_styles', id), dataToSave, { merge: true });
       console.log("Style saved successfully");
       setIsAddingStyle(false);
       setEditingStyle(null);

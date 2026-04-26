@@ -38,7 +38,7 @@ export const syncInitialData = async () => {
 };
 
 export const subscribeToStyles = (callback: (styles: Style[]) => void) => {
-    const q = query(collection(db, 'app_styles'), orderBy('order', 'asc'));
+    const q = query(collection(db, 'app_styles'));
     return onSnapshot(q, (snapshot) => {
         const styles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Style));
         callback(styles);
@@ -46,7 +46,7 @@ export const subscribeToStyles = (callback: (styles: Style[]) => void) => {
 };
 
 export const subscribeToCategories = (callback: (categories: any[]) => void) => {
-    const q = query(collection(db, 'app_categories'), orderBy('order', 'asc'));
+    const q = query(collection(db, 'app_categories'));
     return onSnapshot(q, (snapshot) => {
         const cats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         callback(cats);
