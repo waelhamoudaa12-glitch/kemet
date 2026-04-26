@@ -1,8 +1,44 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Public collections - Read only for public, Write for admins
+    match /app_styles/{styleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /app_categories/{catId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /portfolio/{projectId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // User profiles - Read/Write for owner, Read for admins
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Saved designs - Read/Write for owner, Read for admins
+    match /designs/{designId} {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Default deny
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

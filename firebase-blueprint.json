@@ -59,6 +59,20 @@
         "order": { "type": "number" }
       },
       "required": ["name", "iconName", "options"]
+    },
+    "portfolio_project": {
+      "title": "Portfolio Project",
+      "description": "Before and after project showcase",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "beforeImage": { "type": "string" },
+        "afterImage": { "type": "string" },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "beforeImage", "afterImage"]
     }
   },
   "firestore": {
@@ -77,6 +91,10 @@
     "/app_categories/{categoryId}": {
       "schema": "category_config",
       "description": "Finish category and option definitions"
+    },
+    "/portfolio/{projectId}": {
+      "schema": "portfolio_project",
+      "description": "Portfolio projects with before/after photos"
     }
   }
 }

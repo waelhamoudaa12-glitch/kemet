@@ -12,7 +12,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './lib/firebase';
-import { subscribeToStyles, subscribeToCategories, syncInitialData } from './lib/contentService';
+import { subscribeToStyles, subscribeToCategories, subscribeToPortfolio, syncInitialData } from './lib/contentService';
 import { AdminPanel } from './components/AdminPanel';
 import { Category, Option } from './types';
 import { 
@@ -36,7 +36,7 @@ import {
 
 // --- Types ---
 
-type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'mydesign';
+type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'portfolio' | 'mydesign';
 
 const SPRING_TRANSITION = { type: 'spring', stiffness: 300, damping: 30 };
 
@@ -91,6 +91,7 @@ export default function App() {
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [appStyles, setAppStyles] = useState<any[]>([]);
   const [appCategories, setAppCategories] = useState<any[]>([]);
+  const [appPortfolio, setAppPortfolio] = useState<any[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -104,10 +105,12 @@ export default function App() {
       }));
       setAppCategories(mappedCats);
     });
+    const unsubPortfolio = subscribeToPortfolio(setAppPortfolio);
 
     return () => {
       unsubStyles();
       unsubCats();
+      unsubPortfolio();
     };
   }, []);
 
@@ -182,6 +185,7 @@ export default function App() {
 
   const navItems = [
     { id: 'home', label: 'الرئيسية' },
+    { id: 'portfolio', label: 'من تصميمنا' },
     { id: 'about', label: 'عنا' },
     { id: 'contact', label: 'اتصل بنا' },
   ];
@@ -234,7 +238,7 @@ export default function App() {
                             key={item.id}
                             onClick={() => {
                                 setIsMobileMenuOpen(false);
-                                if (item.id === 'home' || item.id === 'about') {
+                                if (item.id === 'home' || item.id === 'about' || item.id === 'portfolio') {
                                     setCurrentPage(item.id as AppState);
                                 } else if (item.id === 'contact') {
                                     window.open('https://wa.me/201554853093', '_blank');
@@ -431,6 +435,73 @@ export default function App() {
                        <p className="text-xs md:text-sm font-light leading-relaxed italic">"أن يصبح كل بيت في المنطقة العربية يعكس شخصية أصحابه من خلال حلول KEMET المبتكرة."</p>
                     </div>
                  </div>
+              </div>
+            </motion.div>
+          )}
+
+          {currentPage === 'portfolio' && (
+            <motion.div 
+              key="portfolio"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="min-h-screen py-24 px-8 lg:px-24 max-w-7xl mx-auto"
+            >
+              <div className="text-center mb-20 text-right">
+                <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-xs mb-4 block">PortFolio Showcase</span>
+                <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight">من <span className="gold-gradient italic underline underline-offset-[12px] decoration-gold-500/30">تصميمنا</span></h2>
+                <p className="text-gold-200/50 max-w-2xl ml-auto text-lg leading-relaxed font-black">
+                  نحن نفخر بتنفيذ أفكار عملائنا وتحويلها إلى واقع ملموس بدقة عالية وفخامة لا تضاهى. شاهد الفرق في التحول بين الصور قبل التشطيب وبعده.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+                {appPortfolio.map((project: any) => (
+                  <motion.div 
+                    key={project.id}
+                    className="group"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                  >
+                    <div className="mb-6 overflow-hidden rounded-[2.5rem] border-2 border-gold-500/10 shadow-2xl bg-egypt-dark relative group-hover:border-gold-500/30 transition-colors duration-500">
+                      <div className="grid grid-cols-2">
+                        {/* Before */}
+                        <div className="relative aspect-[3/4] overflow-hidden border-r border-gold-500/10">
+                          <img 
+                            src={project.beforeImage} 
+                            alt="Before" 
+                            className="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 ease-in-out" 
+                          />
+                          <div className="absolute top-6 left-6 bg-egypt-black/80 backdrop-blur-xl px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] text-white border border-white/10 z-10">قبل</div>
+                        </div>
+                        {/* After */}
+                        <div className="relative aspect-[3/4] overflow-hidden">
+                          <img 
+                            src={project.afterImage} 
+                            alt="After" 
+                            className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-all duration-1000 ease-in-out" 
+                          />
+                          <div className="absolute top-6 right-6 bg-gold-500 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] text-egypt-black shadow-2xl z-10">بعد</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right px-4">
+                      <h3 className="text-3xl font-black mb-3 text-white group-hover:text-gold-500 transition-colors uppercase tracking-tight italic">{project.title}</h3>
+                      <p className="text-gold-200/40 font-medium leading-relaxed italic text-sm">{project.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="mt-24 text-center">
+                 <button 
+                  onClick={() => window.open('https://wa.me/201554853093', '_blank')}
+                  className="bg-gold-500 text-egypt-black px-12 py-6 rounded-2xl font-black text-xl hover:bg-white transition-all flex items-center gap-6 mx-auto shadow-[0_20px_60px_rgba(212,175,55,0.2)] group"
+                >
+                  ابدأ مشروعك معنا
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                </button>
               </div>
             </motion.div>
           )}
