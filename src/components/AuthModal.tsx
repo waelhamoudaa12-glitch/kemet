@@ -19,7 +19,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const formatEmail = (phone: string) => {
     const normalized = phone.toLowerCase().replace(/\s/g, '');
     // If it's the admin ID, use it directly as the email local part
-    if (phone.trim() === 'WaelWeza123123') return 'WaelWeza123123@kemet.app';
+    if (phone.trim() === '123123123') return '123123123@kemet.app';
     // For normal phone numbers, strip non-digits
     const cleaned = phone.replace(/\D/g, '');
     return `${cleaned}@kemet.app`;
@@ -65,7 +65,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             uid: userCredential.user.uid,
             phoneNumber: phoneNumber.trim(),
             displayName: displayName,
-            isAdmin: phoneNumber.trim() === 'WaelWeza123123', // Admin check
+            isAdmin: phoneNumber.trim() === '123123123', // Admin check
             createdAt: serverTimestamp(),
             lastUpdated: serverTimestamp()
           }, { merge: true });
@@ -87,7 +87,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       console.error("Auth top-level error:", err);
       
       if (err.code === 'auth/network-request-failed') {
-        setError(`خطأ في الشبكة. تأكد من اتصالك بالإنترنت. (Code: ${err.code})`);
+        setError(`خطأ في الشبكة. من فضلك افتح التطبيق في نافذة جديدة (Open in New Tab) وتأكد من اتصالك بالإنترنت. (Code: ${err.code})`);
         return;
       }
       

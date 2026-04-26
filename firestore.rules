@@ -2,54 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
-      allow read, write: if false;
-    }
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == 'waelweza123123@kemet.app' ||
-        request.auth.token.email == 'waelhamoudaa12@gmail.com' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
-      );
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isSignedIn() && request.auth.uid == userId && (
-        request.resource.data.isAdmin == false || 
-        isAdmin()
-      );
-      allow update: if isAdmin() || (
-        isOwner(userId) && 
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['selections', 'lastUpdated']))
-      );
-      allow delete: if isAdmin();
-      allow list: if isAdmin();
-    }
-
-    match /designs/{designId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow list: if isAdmin();
-    }
-
-    match /app_styles/{styleId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /app_categories/{categoryId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
   }
 }

@@ -10,11 +10,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from './lib/firebase';
+import { db } from './lib/firebase';
 import { subscribeToStyles, subscribeToCategories, syncInitialData } from './lib/contentService';
-import { AuthModal } from './components/AuthModal';
 import { AdminPanel } from './components/AdminPanel';
 import { Category, Option } from './types';
 import { 
@@ -79,10 +77,7 @@ interface Selection {
 // --- Components ---
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<AppState>('home');
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
@@ -109,60 +104,12 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (isAdmin) {
-      syncInitialData();
-    }
-  }, [isAdmin]);
-
   const heroImages = [
     "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=1200",
     "https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&q=80&w=1200",
     "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=1200",
     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200"
   ];
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        // Fallback admin check for the ID provided
-        const userEmailLower = u.email?.toLowerCase() || '';
-        const isAdminEmail = u.email === 'WaelWeza123123@kemet.app' || userEmailLower === 'waelhamoudaa12@gmail.com';
-        
-        if (isAdminEmail) {
-          setIsAdmin(true);
-        }
-
-        try {
-          const userRef = doc(db, 'users', u.uid);
-          const userDoc = await getDoc(userRef);
-          
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            
-            // If email matches but isAdmin is not set in DB, update it for better persistence
-            if (isAdminEmail && !data.isAdmin) {
-              await updateDoc(userRef, { isAdmin: true });
-              setIsAdmin(true);
-            } else {
-              setIsAdmin(data?.isAdmin === true);
-            }
-
-            if (data?.selections) {
-              setSelections(data.selections);
-            }
-          }
-        } catch (err) {
-          console.error("Error fetching admin status:", err);
-          if (!isAdminEmail) setIsAdmin(false);
-        }
-      } else {
-        setIsAdmin(false);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (currentPage !== 'home') return;
@@ -175,46 +122,27 @@ export default function App() {
   }, [currentPage, heroImages.length]);
 
   const handleStart = () => {
-    if (!user) {
-      setIsAuthModalOpen(true);
-      return;
-    }
     setCurrentPage('styles');
   };
   
-  // Save selection to Firestore if logged in
+  // Save selection to Firestore
   const saveSelection = async (newSelections: any, isFinal = false) => {
-    if (user) {
-      try {
-        // Save to user profile for persistence
-        await setDoc(doc(db, 'users', user.uid), {
+    try {
+      // If it's a final design submission, save to 'designs' collection
+      if (isFinal) {
+        const designId = `${Date.now()}`;
+        await setDoc(doc(db, 'designs', designId), {
+          style: newSelections.style,
           selections: newSelections,
-          lastUpdated: serverTimestamp()
-        }, { merge: true });
-
-        // If it's a final design submission, save to 'designs' collection for admin focus
-        if (isFinal) {
-          const designId = `${user.uid}_${Date.now()}`;
-          await setDoc(doc(db, 'designs', designId), {
-            userId: user.uid,
-            userName: user.displayName || user.phoneNumber,
-            userPhone: user.phoneNumber,
-            style: newSelections.style,
-            selections: newSelections,
-            createdAt: serverTimestamp()
-          });
-        }
-      } catch (err: any) {
-        console.error("Error saving selection:", err);
+          createdAt: serverTimestamp()
+        });
       }
+    } catch (err: any) {
+      console.error("Error saving selection:", err);
     }
   };
 
   const handleSelectStyle = (styleId: string) => {
-    if (!user) {
-      setIsAuthModalOpen(true);
-      return;
-    }
     setSelectedStyle(styleId);
     const newSelections = { style: styleId };
     setSelections(newSelections);
@@ -249,7 +177,6 @@ export default function App() {
     { id: 'home', label: 'الرئيسية' },
     { id: 'about', label: 'عنا' },
     { id: 'contact', label: 'اتصل بنا' },
-    ...(user ? [{ id: 'mydesign', label: 'تصميمي' }] : []),
   ];
 
   return (
@@ -304,12 +231,6 @@ export default function App() {
                                     setCurrentPage(item.id as AppState);
                                 } else if (item.id === 'contact') {
                                     window.open('https://wa.me/201554853093', '_blank');
-                                } else if (item.id === 'mydesign') {
-                                     if (!user) {
-                                      setIsAuthModalOpen(true);
-                                      return;
-                                    }
-                                    setCurrentPage(item.id as AppState);
                                 }
                             }}
                             className={`flex items-center px-4 py-3 text-right hover:bg-gold-500/10 transition-colors ${
@@ -336,31 +257,13 @@ export default function App() {
               <div className="h-6 w-px bg-gold-500/10 mx-0.5 hidden sm:block"></div>
 
               <div className="flex items-center gap-1 md:gap-4 shrink-0">
-                  {isAdmin && (
-                    <button 
-                        onClick={() => setIsAdminPanelOpen(true)}
-                        className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/5 flex items-center transition-all"
-                    >
-                        <Lock className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-                        <span className="hidden md:inline">إدارة</span>
-                    </button>
-                  )}
-                  {user ? (
-                    <button 
-                        onClick={() => signOut(auth)}
-                        className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/5 transition-all"
-                    >
-                        <span className="md:hidden">X</span>
-                        <span className="hidden md:inline">خروج</span>
-                    </button>
-                  ) : (
-                    <button 
-                        onClick={() => setIsAuthModalOpen(true)}
-                        className="text-[10px] md:text-sm font-bold text-white hover:text-gold-500 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/10 transition-all"
-                    >
-                        دخول
-                    </button>
-                  )}
+                  <button 
+                      onClick={() => setIsEditPanelOpen(true)}
+                      className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/5 flex items-center transition-all"
+                  >
+                      <Lock className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                      <span className="hidden md:inline">تعديل</span>
+                  </button>
               </div>
           </div>
         </div>
@@ -1045,10 +948,10 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-      {isAdmin && isAdminPanelOpen && (
+
+      {isEditPanelOpen && (
         <AdminPanel 
-          onClose={() => setIsAdminPanelOpen(false)} 
+          onClose={() => setIsEditPanelOpen(false)} 
           appStyles={appStyles}
           appCategories={appCategories}
         />
