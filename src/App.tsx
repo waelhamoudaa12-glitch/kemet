@@ -442,7 +442,7 @@ export default function App() {
                 <motion.span 
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-gold-500 font-black uppercase tracking-[0.4em] text-[10px] md:text-xs mb-4 block"
+                  className="text-gold-400 font-black uppercase tracking-[0.2em] text-lg md:text-xl mb-6 block border-b-2 border-gold-500 pb-2"
                 >
                   الخطوة الأولى: اختيار النمط الملكي
                 </motion.span>
