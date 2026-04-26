@@ -378,12 +378,8 @@ export default function App() {
                        />
                      </motion.div>
                    </AnimatePresence>
-                  <div className="absolute -bottom-4 -right-4 md:-bottom-8 md:-right-8 bg-gold-500 p-6 md:p-8 shadow-3xl max-w-[250px] z-10 rounded-[2rem] border-4 border-egypt-black">
-                      <p className="font-mono text-[10px] text-egypt-black font-black mb-2 tracking-[0.4em]">KEMET / 0{heroImageIndex + 1}</p>
-                      <p className="text-sm md:text-lg font-black leading-none text-egypt-black tracking-tighter italic">نحن نهتم بالتفاصيل التي لا يراها الآخرون.</p>
-                  </div>
-                </motion.div>
-              </div>
+                 </motion.div>
+               </div>
 
               {/* Portfolio Highlights Section */}
               <div className="max-w-7xl mx-auto px-8 lg:px-24 py-24 w-full">
