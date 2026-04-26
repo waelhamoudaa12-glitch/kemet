@@ -41,7 +41,13 @@ type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'myde
 const SPRING_TRANSITION = { type: 'spring', stiffness: 300, damping: 30 };
 
 const ICON_MAP: Record<string, any> = {
-  Palette, Layout, Maximize2, DoorOpen, Lamp, Bath, Utensils
+  walls: Palette,
+  floors: Layout,
+  ceilings: Maximize2,
+  doors: DoorOpen,
+  lighting: Lamp,
+  bathrooms: Bath,
+  kitchen: Utensils
 };
 
 const SmoothImage = ({ src, alt, className, referrerPolicy }: { src: string; alt: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }) => {
@@ -610,8 +616,8 @@ export default function App() {
                       </p>
                     </header>
 
-                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                       {appCategories[currentCategoryIndex]?.options.map((option: any) => (
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                       {appCategories[currentCategoryIndex]?.options?.map((option: any) => (
                          <motion.button
                            key={option.id}
                            whileTap={{ scale: 0.98 }}
@@ -730,7 +736,7 @@ export default function App() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {appCategories.map((cat, idx) => {
                       const selectionIds = selections[cat.id] as string[] || [];
-                      const selectedOptions = cat.options.filter((o: any) => selectionIds.includes(o.id));
+                      const selectedOptions = (cat.options || []).filter((o: any) => selectionIds.includes(o.id));
                       
                       return (
                         <motion.div

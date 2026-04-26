@@ -50,6 +50,8 @@ export const subscribeToCategories = (callback: (categories: any[]) => void) => 
     return onSnapshot(q, (snapshot) => {
         const cats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         callback(cats);
+    }, (err) => {
+        console.error("Error fetching categories:", err);
     });
 };
 
