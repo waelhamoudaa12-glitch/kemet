@@ -53,7 +53,7 @@ const ICON_MAP: Record<string, any> = {
 const SmoothImage = ({ src, alt, className, referrerPolicy }: { src: string; alt: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     return (
-        <div className={`relative overflow-hidden ${className}`}>
+        <div className={`relative overflow-hidden transform-gpu translate-z-0 ${className}`}>
             <AnimatePresence mode="wait">
                 {!isLoaded && (
                     <motion.div 
@@ -192,7 +192,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-egypt-black font-sans text-gold-100 flex flex-col">
+    <div className="min-h-dvh bg-egypt-black font-sans text-gold-100 flex flex-col">
       {/* Top Navigation Header */}
       <motion.header 
         initial={{ y: -100 }} 
@@ -291,19 +291,10 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative min-h-screen flex flex-col lg:flex-row overflow-hidden pharaonic-pattern"
+              className="relative min-h-dvh lg:min-h-screen flex flex-col lg:flex-row overflow-hidden pharaonic-pattern"
             >
               {/* Left Content: Hero Section */}
               <div className="w-full lg:w-1/2 p-8 lg:p-24 flex flex-col justify-center bg-egypt-black/40 backdrop-blur-sm relative z-10">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="mb-8"
-                >
-                  <span className="bg-gold-500/20 text-white border border-gold-500/50 px-8 py-3 text-base md:text-lg font-bold uppercase tracking-[0.1em] rounded-full inline-block shadow-lg">
-                    مستشار التشطيب الملكي الذكي
-                  </span>
-                </motion.div>
                 
                 <motion.h1 
                   initial={{ y: 30, opacity: 0 }}
@@ -468,7 +459,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="min-h-screen py-24 px-8 lg:px-24 max-w-7xl mx-auto"
+              className="min-h-dvh py-24 px-8 lg:px-24 max-w-7xl mx-auto"
             >
               <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-center">
                  <div className="lg:w-1/2 text-right">
@@ -512,7 +503,7 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="min-h-screen py-24 px-8 lg:px-24 max-w-7xl mx-auto"
+              className="min-h-dvh py-24 px-8 lg:px-24 max-w-7xl mx-auto"
             >
               <div className="text-center mb-20 text-right">
                 <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-xs mb-4 block">PortFolio Showcase</span>
@@ -591,7 +582,7 @@ export default function App() {
                   الخطوة الأولى: اختيار النمط الملكي
                 </motion.span>
                 <h2 className="text-4xl md:text-6xl lg:text-8xl mb-8 font-black tracking-tighter leading-none text-white">
-                  اختر <span className="gold-gradient">طرازك المفضل</span>
+                  اختر <span className="gold-gradient">ستايلك</span>
                 </h2>
                 <div className="w-24 h-2 bg-gold-500 shadow-glow"></div>
               </div>
@@ -640,7 +631,7 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col h-screen overflow-hidden"
+              className="flex flex-col h-dvh overflow-hidden"
             >
               {/* Top Navigation for Mobile/Tablet */}
               <div className="lg:hidden bg-white border-b border-gray-100 px-6 py-4 flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
@@ -847,7 +838,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="min-h-screen py-24 px-8 lg:px-24 max-w-7xl mx-auto"
+              className="min-h-dvh py-24 px-8 lg:px-24 max-w-7xl mx-auto"
             >
               <div className="mb-16 md:mb-24">
                  <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8 decoration-2">Personal Selection</span>
@@ -965,7 +956,7 @@ export default function App() {
               key="summary"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="min-h-screen py-16 px-6 lg:px-20 bg-egypt-black pharaonic-pattern overflow-y-auto"
+              className="min-h-dvh py-16 px-6 lg:px-20 bg-egypt-black pharaonic-pattern overflow-y-auto"
             >
               <div className="max-w-6xl mx-auto">
                 <div className="bg-egypt-dark rounded-[3rem] shadow-2xl overflow-hidden border border-gold-500/10 mb-12">
