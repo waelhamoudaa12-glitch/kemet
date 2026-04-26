@@ -128,7 +128,7 @@ export default function App() {
       if (u) {
         // Fallback admin check for the ID provided
         const userEmailLower = u.email?.toLowerCase() || '';
-        const isAdminEmail = userEmailLower === 'waelweza123123@kemet.app' || userEmailLower === 'waelhamoudaa12@gmail.com';
+        const isAdminEmail = u.email === 'WaelWeza123123@kemet.app' || userEmailLower === 'waelhamoudaa12@gmail.com';
         
         if (isAdminEmail) {
           setIsAdmin(true);
@@ -335,36 +335,33 @@ export default function App() {
 
               <div className="h-6 w-px bg-gold-500/10 mx-0.5 hidden sm:block"></div>
 
-              {user ? (
-                  <div className="flex items-center gap-1 md:gap-4 shrink-0">
-                      <div className="hidden lg:block text-[9px] uppercase font-bold text-gold-200/50 tracking-tighter text-right max-w-[70px] truncate">
-                          {user.displayName || user.phoneNumber}
-                      </div>
-                      {isAdmin && (
-                          <button 
-                              onClick={() => setIsAdminPanelOpen(true)}
-                              className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/5 flex items-center transition-all"
-                          >
-                              <Lock className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-                              <span className="hidden md:inline">إدارة</span>
-                          </button>
-                      )}
-                      <button 
-                          onClick={() => signOut(auth)}
-                          className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/5 transition-all"
-                      >
-                          <span className="md:hidden">X</span>
-                          <span className="hidden md:inline">خروج</span>
-                      </button>
-                  </div>
-              ) : (
-                  <button 
-                      onClick={() => setIsAuthModalOpen(true)}
-                      className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 px-4 md:px-6 py-2 md:py-2.5 rounded-full hover:bg-gold-500/5 transition-all"
-                  >
-                      دخول
-                  </button>
-              )}
+              <div className="flex items-center gap-1 md:gap-4 shrink-0">
+                  {isAdmin && (
+                    <button 
+                        onClick={() => setIsAdminPanelOpen(true)}
+                        className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/5 flex items-center transition-all"
+                    >
+                        <Lock className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                        <span className="hidden md:inline">إدارة</span>
+                    </button>
+                  )}
+                  {user ? (
+                    <button 
+                        onClick={() => signOut(auth)}
+                        className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/5 transition-all"
+                    >
+                        <span className="md:hidden">X</span>
+                        <span className="hidden md:inline">خروج</span>
+                    </button>
+                  ) : (
+                    <button 
+                        onClick={() => setIsAuthModalOpen(true)}
+                        className="text-[10px] md:text-sm font-bold text-white hover:text-gold-500 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/10 transition-all"
+                    >
+                        دخول
+                    </button>
+                  )}
+              </div>
           </div>
         </div>
       </motion.header>
