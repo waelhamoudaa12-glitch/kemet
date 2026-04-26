@@ -273,7 +273,7 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 pt-20 md:pt-24">
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {currentPage === 'home' && (
             <motion.div 
               key="home"
