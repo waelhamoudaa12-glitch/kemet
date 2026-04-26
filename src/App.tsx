@@ -88,6 +88,7 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    syncInitialData();
     const unsubStyles = subscribeToStyles(setAppStyles);
     const unsubCats = subscribeToCategories((cats) => {
       // Map icons back to components
