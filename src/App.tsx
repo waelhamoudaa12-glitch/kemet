@@ -28,7 +28,7 @@ import {
   CheckCircle2, 
   ArrowRight,
   Maximize2,
-  Lock,
+  Edit3,
   UserCircle,
   Menu,
   X
@@ -93,6 +93,7 @@ export default function App() {
   const [appCategories, setAppCategories] = useState<any[]>([]);
   const [appPortfolio, setAppPortfolio] = useState<any[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeProjectHover, setActiveProjectHover] = useState<string | null>(null);
 
   useEffect(() => {
     syncInitialData();
@@ -272,8 +273,8 @@ export default function App() {
                       onClick={() => setIsEditPanelOpen(true)}
                       className="text-[10px] md:text-sm font-bold text-gold-500 hover:text-gold-600 border border-gold-500/20 p-2 md:px-4 md:py-2 rounded-full bg-gold-500/5 flex items-center transition-all"
                   >
-                      <Lock className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-                      <span className="hidden md:inline">تعديل</span>
+                      <Edit3 className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                      <span className="hidden md:inline">تعديل المحتوى</span>
                   </button>
               </div>
           </div>
@@ -391,6 +392,72 @@ export default function App() {
                       <p className="text-2xl font-black leading-none text-egypt-black tracking-tighter italic">نحن نهتم بالتفاصيل التي لا يراها الآخرون.</p>
                   </div>
                 </motion.div>
+              </div>
+
+              {/* Portfolio Highlights Section */}
+              <div className="max-w-7xl mx-auto px-8 lg:px-24 py-24 w-full">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                  <div className="text-right">
+                    <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-[10px] md:text-xs mb-4 block underline underline-offset-8"> masterpieces: من أعمالنا</span>
+                    <h2 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter text-white">روائع <span className="gold-gradient">كيميت</span></h2>
+                    <p className="text-gold-200/40 font-medium text-lg max-w-xl">اكتشف الفرق الذي نصنعه في كل مساحة. المس السهم لرؤية التحول.</p>
+                  </div>
+                  <button 
+                    onClick={() => setCurrentPage('portfolio')}
+                    className="text-gold-500 font-black uppercase tracking-widest text-xs border-b-2 border-gold-500/20 pb-2 hover:border-gold-500 transition-all flex items-center gap-2 group"
+                  >
+                    شاهد المعرض كاملاً
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+                  {appPortfolio.slice(0, 4).map((project: any) => (
+                    <motion.div 
+                      key={project.id}
+                      className="group relative"
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                    >
+                      <div className="relative aspect-[16/10] overflow-hidden rounded-[2.5rem] border border-gold-500/10 shadow-2xl">
+                         {/* Before Image */}
+                         <img 
+                            src={project.beforeImage} 
+                            alt="Before" 
+                            className={`absolute inset-0 w-full h-full object-cover grayscale transition-opacity duration-700 ease-in-out ${activeProjectHover === project.id ? 'opacity-0' : 'opacity-40'}`}
+                         />
+                         {/* After Image */}
+                         <img 
+                            src={project.afterImage} 
+                            alt="After" 
+                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${activeProjectHover === project.id ? 'opacity-100' : 'opacity-0'}`}
+                         />
+                         
+                         {/* Labels */}
+                         <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border backdrop-blur-md transition-all ${activeProjectHover === project.id ? 'bg-gold-500 text-egypt-black border-gold-500' : 'bg-egypt-black/60 text-gold-500 border-gold-500/10'}`}>
+                               {activeProjectHover === project.id ? 'بعد' : 'قبل'}
+                            </span>
+                         </div>
+
+                         {/* Hover Interaction Trigger Card */}
+                         <div 
+                           className="absolute inset-0 z-20 cursor-pointer"
+                           onMouseEnter={() => setActiveProjectHover(project.id)}
+                           onMouseLeave={() => setActiveProjectHover(null)}
+                         />
+
+                         {/* Overlay Info */}
+                         <div className="absolute inset-0 bg-gradient-to-t from-egypt-black/80 via-transparent to-transparent pointer-events-none" />
+                         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 text-right pointer-events-none">
+                            <h3 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tighter">{project.title}</h3>
+                            <p className="text-gold-200/50 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500">{project.description}</p>
+                         </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           )}
@@ -1032,6 +1099,7 @@ export default function App() {
           onClose={() => setIsEditPanelOpen(false)} 
           appStyles={appStyles}
           appCategories={appCategories}
+          appPortfolio={appPortfolio}
         />
       )}
     </div>

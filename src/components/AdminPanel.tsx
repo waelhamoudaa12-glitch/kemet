@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, doc, deleteDoc, orderBy, setDoc, writeBatch } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
+import { collection, query, onSnapshot, doc, deleteDoc, orderBy, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles, 
@@ -111,13 +111,15 @@ function ImageInput({
 export function AdminPanel({ 
   onClose, 
   appStyles, 
-  appCategories 
+  appCategories,
+  appPortfolio
 }: { 
   onClose: () => void,
   appStyles: any[],
-  appCategories: any[]
+  appCategories: any[],
+  appPortfolio: any[]
 }) {
-  const [activeTab, setActiveTab] = useState<'content'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'portfolio'>('content');
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -125,8 +127,11 @@ export function AdminPanel({
   // Content management state
   const [editingStyle, setEditingStyle] = useState<any | null>(null);
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
+  const [editingProject, setEditingProject] = useState<any | null>(null);
+  
   const [isAddingStyle, setIsAddingStyle] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [isAddingProject, setIsAddingProject] = useState(false);
 
   // New option states for Categories
   const [newOptName, setNewOptName] = useState('');
@@ -134,15 +139,27 @@ export function AdminPanel({
   
   // Local state for image forms
   const [activeStyleImage, setActiveStyleImage] = useState('');
+  const [activeProjectBefore, setActiveProjectBefore] = useState('');
+  const [activeProjectAfter, setActiveProjectAfter] = useState('');
 
   // Content management state
+  const handleFirestoreError = (error: any, operation: string, path: string) => {
+    const errInfo = {
+      error: error.message || String(error),
+      code: error.code,
+      operation,
+      path
+    };
+    console.error(`Firestore Error [${operation}]:`, JSON.stringify(errInfo));
+    return `حدث خطأ: ${error.message || error} (Code: ${error.code || 'unknown'})`;
+  };
+
   const handleDeleteStyle = async (styleId: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذا النمط؟')) {
       try {
         await deleteDoc(doc(db, 'app_styles', styleId));
-      } catch (error) {
-        console.error("Delete style error:", error);
-        alert("حدث خطأ أثناء الحذف");
+      } catch (error: any) {
+        alert(handleFirestoreError(error, 'delete', `app_styles/${styleId}`));
       }
     }
   };
@@ -151,31 +168,36 @@ export function AdminPanel({
     if (window.confirm('هل أنت متأكد من حذف هذا القسم بجميع خياراته؟')) {
       try {
         await deleteDoc(doc(db, 'app_categories', catId));
-      } catch (error) {
-        console.error("Delete category error:", error);
-        alert("حدث خطأ أثناء الحذف");
+      } catch (error: any) {
+        alert(handleFirestoreError(error, 'delete', `app_categories/${catId}`));
+      }
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا المشروع؟')) {
+      try {
+        await deleteDoc(doc(db, 'portfolio', projectId));
+      } catch (error: any) {
+        alert(handleFirestoreError(error, 'delete', `portfolio/${projectId}`));
       }
     }
   };
 
   const handleSaveStyle = async (styleData: any) => {
-    console.log("Saving style data...", styleData);
     try {
       const id = styleData.id || `style_${Date.now()}`;
       const dataToSave = {
         ...styleData,
         id,
         order: styleData.order ?? Date.now(),
-        updatedAt: new Date()
+        updatedAt: serverTimestamp()
       };
-      console.log("Data to save:", dataToSave);
       await setDoc(doc(db, 'app_styles', id), dataToSave, { merge: true });
-      console.log("Style saved successfully");
       setIsAddingStyle(false);
       setEditingStyle(null);
-    } catch (error) {
-      console.error("Save style error:", error);
-      alert("حدث خطأ أثناء الحفظ: " + String(error));
+    } catch (error: any) {
+      alert(handleFirestoreError(error, 'write', `app_styles/${styleData.id || 'new'}`));
     }
   };
 
@@ -186,13 +208,28 @@ export function AdminPanel({
         ...catData,
         id,
         order: catData.order ?? Date.now(),
-        updatedAt: new Date()
+        updatedAt: serverTimestamp()
       }, { merge: true });
       setIsAddingCategory(false);
       setEditingCategory(null);
-    } catch (error) {
-      console.error("Save category error:", error);
-      alert("حدث خطأ أثناء الحفظ");
+    } catch (error: any) {
+      alert(handleFirestoreError(error, 'write', `app_categories/${catData.id || 'new'}`));
+    }
+  };
+
+  const handleSaveProject = async (projectData: any) => {
+    try {
+      const id = projectData.id || `project_${Date.now()}`;
+      await setDoc(doc(db, 'portfolio', id), {
+        ...projectData,
+        id,
+        order: projectData.order ?? Date.now(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      setIsAddingProject(false);
+      setEditingProject(null);
+    } catch (error: any) {
+      alert(handleFirestoreError(error, 'write', `portfolio/${projectData.id || 'new'}`));
     }
   };
 
@@ -208,119 +245,202 @@ export function AdminPanel({
           </div>
         </div>
 
-        <button 
-          onClick={onClose} 
-          className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center hover:bg-gold-500/10 rounded-full transition-all text-gold-500/40 hover:text-gold-500"
-        >
-          <X className="w-6 h-6 md:w-8 md:h-8" />
-        </button>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onClose} 
+            className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center hover:bg-gold-500/10 rounded-full transition-all text-gold-500/40 hover:text-gold-500"
+          >
+            <X className="w-6 h-6 md:w-8 md:h-8" />
+          </button>
+        </div>
       </header>
 
-      <div className="md:hidden p-4 bg-egypt-dark border-b border-gold-500/10 hidden">
+      <div className="bg-egypt-dark border-b border-gold-500/10 flex px-4 md:px-16 gap-6 md:gap-12">
+          <button 
+            onClick={() => setActiveTab('content')}
+            className={`py-4 md:py-6 text-xs md:text-sm font-black uppercase tracking-widest transition-all border-b-2 ${
+               activeTab === 'content' ? 'text-gold-500 border-gold-500' : 'text-gold-500/40 border-transparent hover:text-gold-500'
+            }`}
+          >
+             المحتوى الأساسي
+          </button>
+          <button 
+            onClick={() => setActiveTab('portfolio')}
+            className={`py-4 md:py-6 text-xs md:text-sm font-black uppercase tracking-widest transition-all border-b-2 ${
+               activeTab === 'portfolio' ? 'text-gold-500 border-gold-500' : 'text-gold-500/40 border-transparent hover:text-gold-500'
+            }`}
+          >
+             أعمالنا (Portfolio)
+          </button>
       </div>
 
       <main className="flex-1 overflow-y-auto p-4 md:p-16 bg-egypt-black pharaonic-pattern">
           <div className="max-w-6xl mx-auto space-y-16">
-            {/* Styles Management */}
-            <div>
-              <div className="flex justify-between items-end mb-8">
-                 <div className="text-right">
-                    <h3 className="text-3xl font-black text-white">الأنماط (Styles)</h3>
-                    <p className="text-gold-500/40 text-xs font-black uppercase tracking-widest mt-1">إدارة التصميمات الأساسية</p>
-                 </div>
-                 <button 
-                   onClick={() => {
-                     setIsAddingStyle(true);
-                     setActiveStyleImage('');
-                   }}
-                   className="flex items-center gap-2 bg-gold-500 text-egypt-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-glow"
-                 >
-                   <Plus className="w-4 h-4" />
-                   إضافة نمط جديد
-                 </button>
-              </div>
+            {activeTab === 'content' ? (
+              <>
+                {/* Styles Management */}
+                <div>
+                  <div className="flex justify-between items-end mb-8">
+                     <div className="text-right">
+                        <h3 className="text-3xl font-black text-white">الأنماط (Styles)</h3>
+                        <p className="text-gold-500/40 text-xs font-black uppercase tracking-widest mt-1">إدارة التصميمات الأساسية</p>
+                     </div>
+                     <button 
+                       onClick={() => {
+                         setIsAddingStyle(true);
+                         setActiveStyleImage('');
+                       }}
+                       className="flex items-center gap-2 bg-gold-500 text-egypt-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-glow"
+                     >
+                       <Plus className="w-4 h-4" />
+                       إضافة نمط جديد
+                     </button>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {appStyles.map(style => (
-                    <div key={style.id} className="bg-egypt-dark rounded-[2rem] overflow-hidden border border-gold-500/10 group">
-                       <div className="h-48 relative overflow-hidden">
-                          <img src={style.image} alt={style.name} className="w-full h-full object-cover transition-transform group-hover:scale-105"  referrerPolicy="no-referrer"/>
-                       </div>
-                       <div className="p-6 text-right">
-                          <h4 className="text-xl font-black text-white mb-2">{style.name}</h4>
-                          <p className="text-gold-200/40 text-xs font-medium mb-6 line-clamp-2">{style.description}</p>
-                          <div className="flex gap-2">
-                             <button 
-                               onClick={() => {
-                                 setEditingStyle(style);
-                                 setActiveStyleImage(style.image || '');
-                               }}
-                               className="flex-1 bg-gold-500/10 text-gold-500 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center justify-center gap-2"
-                             >
-                                <Edit className="w-3 h-3" />
-                                تعديل
-                             </button>
-                             <button 
-                               onClick={() => handleDeleteStyle(style.id)}
-                               className="w-12 bg-red-500/10 text-red-500 py-3 rounded-xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
-                             >
-                                <Trash2 className="w-4 h-4" />
-                             </button>
-                          </div>
-                       </div>
-                    </div>
-                 ))}
-              </div>
-            </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                     {appStyles.map(style => (
+                        <div key={style.id} className="bg-egypt-dark rounded-[2rem] overflow-hidden border border-gold-500/10 group">
+                           <div className="h-48 relative overflow-hidden">
+                              <img src={style.image} alt={style.name} className="w-full h-full object-cover transition-transform group-hover:scale-105"  referrerPolicy="no-referrer"/>
+                           </div>
+                           <div className="p-6 text-right">
+                              <h4 className="text-xl font-black text-white mb-2">{style.name}</h4>
+                              <p className="text-gold-200/40 text-xs font-medium mb-6 line-clamp-2">{style.description}</p>
+                              <div className="flex gap-2">
+                                 <button 
+                                   onClick={() => {
+                                     setEditingStyle(style);
+                                     setActiveStyleImage(style.image || '');
+                                   }}
+                                   className="flex-1 bg-gold-500/10 text-gold-500 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center justify-center gap-2"
+                                 >
+                                    <Edit className="w-3 h-3" />
+                                    تعديل
+                                 </button>
+                                 <button 
+                                   onClick={() => handleDeleteStyle(style.id)}
+                                   className="w-12 bg-red-500/10 text-red-500 py-3 rounded-xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+                                 >
+                                    <Trash2 className="w-4 h-4" />
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+                </div>
 
-            {/* Categories Management */}
-            <div>
-              <div className="flex justify-between items-end mb-8">
-                 <div className="text-right">
-                    <h3 className="text-3xl font-black text-white">الأقسام (Categories)</h3>
-                    <p className="text-gold-500/40 text-xs font-black uppercase tracking-widest mt-1">إدارة الخامات والموديلات</p>
-                 </div>
-                 <button 
-                   onClick={() => setIsAddingCategory(true)}
-                   className="flex items-center gap-2 bg-gold-500 text-egypt-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-glow"
-                 >
-                   <Plus className="w-4 h-4" />
-                   إضافة قسم جديد
-                 </button>
-              </div>
+                {/* Categories Management */}
+                <div>
+                  <div className="flex justify-between items-end mb-8">
+                     <div className="text-right">
+                        <h3 className="text-3xl font-black text-white">الأقسام (Categories)</h3>
+                        <p className="text-gold-500/40 text-xs font-black uppercase tracking-widest mt-1">إدارة الخامات والموديلات</p>
+                     </div>
+                     <button 
+                       onClick={() => setIsAddingCategory(true)}
+                       className="flex items-center gap-2 bg-gold-500 text-egypt-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-glow"
+                     >
+                       <Plus className="w-4 h-4" />
+                       إضافة قسم جديد
+                     </button>
+                  </div>
 
-              <div className="space-y-6">
-                 {appCategories.map(cat => (
-                    <div key={cat.id} className="bg-egypt-dark rounded-[2.5rem] p-8 border border-gold-500/10 flex flex-col md:flex-row gap-8 items-center text-right">
-                       <div className="w-16 h-16 bg-gold-500 flex items-center justify-center rounded-2xl shrink-0 shadow-lg">
-                          {(() => {
-                             const Icon = getIcon(cat.iconName);
-                             return <Icon className="w-8 h-8 text-egypt-black" />;
-                          })()}
-                       </div>
-                       <div className="flex-1">
-                          <h4 className="text-2xl font-black text-white mb-1">{cat.name}</h4>
-                          <p className="text-gold-500/40 text-[10px] font-black uppercase tracking-widest">{cat.options?.length || 0} خيارات متاحة</p>
-                       </div>
-                       <div className="flex gap-4">
-                          <button 
-                             onClick={() => setEditingCategory(cat)}
-                             className="bg-gold-500/10 text-gold-500 border border-gold-500/20 px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2"
-                          >
-                             <Edit className="w-4 h-4" />
-                             تعديل الخيارات
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteCategory(cat.id)}
-                            className="w-10 h-10 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
-                          >
-                             <Trash2 className="w-4 h-4" />
-                          </button>
-                       </div>
-                    </div>
-                 ))}
+                  <div className="space-y-6">
+                     {appCategories.map(cat => (
+                        <div key={cat.id} className="bg-egypt-dark rounded-[2.5rem] p-8 border border-gold-500/10 flex flex-col md:flex-row gap-8 items-center text-right">
+                           <div className="w-16 h-16 bg-gold-500 flex items-center justify-center rounded-2xl shrink-0 shadow-lg">
+                              {(() => {
+                                 const Icon = getIcon(cat.iconName);
+                                 return <Icon className="w-8 h-8 text-egypt-black" />;
+                              })()}
+                           </div>
+                           <div className="flex-1">
+                              <h4 className="text-2xl font-black text-white mb-1">{cat.name}</h4>
+                              <p className="text-gold-500/40 text-[10px] font-black uppercase tracking-widest">{cat.options?.length || 0} خيارات متاحة</p>
+                           </div>
+                           <div className="flex gap-4">
+                              <button 
+                                 onClick={() => setEditingCategory(cat)}
+                                 className="bg-gold-500/10 text-gold-500 border border-gold-500/20 px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2"
+                              >
+                                 <Edit className="w-4 h-4" />
+                                 تعديل الخيارات
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteCategory(cat.id)}
+                                className="w-10 h-10 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                              >
+                                 <Trash2 className="w-4 h-4" />
+                              </button>
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Portfolio Management */
+              <div>
+                <div className="flex justify-between items-end mb-8">
+                   <div className="text-right">
+                      <h3 className="text-3xl font-black text-white">معرض الأعمال (Portfolio)</h3>
+                      <p className="text-gold-500/40 text-xs font-black uppercase tracking-widest mt-1">إدارة المشاريع المنفذة (قبل وبعد)</p>
+                   </div>
+                   <button 
+                     onClick={() => {
+                       setIsAddingProject(true);
+                       setActiveProjectBefore('');
+                       setActiveProjectAfter('');
+                     }}
+                     className="flex items-center gap-2 bg-gold-500 text-egypt-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-glow"
+                   >
+                     <Plus className="w-4 h-4" />
+                     إضافة مشروع جديد
+                   </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   {appPortfolio.map(project => (
+                      <div key={project.id} className="bg-egypt-dark rounded-[2.5rem] overflow-hidden border border-gold-500/10 flex flex-col">
+                         <div className="grid grid-cols-2 h-48">
+                            <div className="relative overflow-hidden border-r border-gold-500/10">
+                               <img src={project.beforeImage} alt="Before" className="w-full h-full object-cover" />
+                               <div className="absolute top-2 left-2 bg-egypt-black/80 px-2 py-0.5 rounded text-[8px] font-black uppercase text-gold-500">قبل</div>
+                            </div>
+                            <div className="relative overflow-hidden">
+                               <img src={project.afterImage} alt="After" className="w-full h-full object-cover" />
+                               <div className="absolute top-2 right-2 bg-gold-500 px-2 py-0.5 rounded text-[8px] font-black uppercase text-egypt-black">بعد</div>
+                            </div>
+                         </div>
+                         <div className="p-8 text-right flex-1 flex flex-col">
+                            <h4 className="text-2xl font-black text-white mb-2">{project.title}</h4>
+                            <p className="text-gold-200/40 text-xs font-medium mb-6 line-clamp-2 flex-1">{project.description}</p>
+                            <div className="flex gap-2">
+                               <button 
+                                 onClick={() => {
+                                   setEditingProject(project);
+                                   setActiveProjectBefore(project.beforeImage || '');
+                                   setActiveProjectAfter(project.afterImage || '');
+                                 }}
+                                 className="flex-1 bg-gold-500/10 text-gold-500 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center justify-center gap-2"
+                               >
+                                  <Edit className="w-3 h-3" />
+                                  تعديل
+                               </button>
+                               <button 
+                                 onClick={() => handleDeleteProject(project.id)}
+                                 className="w-12 bg-red-500/10 text-red-500 py-3 rounded-xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+                               >
+                                  <Trash2 className="w-4 h-4" />
+                               </button>
+                            </div>
+                         </div>
+                      </div>
+                   ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
       </main>
 
@@ -357,12 +477,68 @@ export function AdminPanel({
                     <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">الوصف</label>
                     <textarea name="description" defaultValue={editingStyle?.description} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white text-right h-32" required />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-right">
+                    <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">صورة النمط</label>
                     <ImageInput value={activeStyleImage} onChange={setActiveStyleImage} required />
                   </div>
                   <button type="submit" className="w-full bg-gold-500 text-egypt-black py-5 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-glow">
                     <Save className="w-5 h-5" />
                     حفظ النمط
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Project Modal */}
+      <AnimatePresence>
+        {(isAddingProject || editingProject) && (
+          <div className="fixed inset-0 z-[200] bg-egypt-black/95 backdrop-blur-xl flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-egypt-dark w-full max-w-2xl rounded-[3rem] border border-gold-500/20 shadow-2xl overflow-hidden"
+            >
+              <div className="p-8 md:p-12">
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="text-2xl font-black text-white">{editingProject ? 'تعديل المشروع' : 'إضافة مشروع جديد'}</h3>
+                  <button onClick={() => { setIsAddingProject(false); setEditingProject(null); }} className="text-gold-500/40 hover:text-gold-500"><X /></button>
+                </div>
+                <form className="space-y-6" onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  await handleSaveProject({
+                    id: editingProject?.id,
+                    title: formData.get('title'),
+                    description: formData.get('description'),
+                    beforeImage: activeProjectBefore,
+                    afterImage: activeProjectAfter,
+                  });
+                }}>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">عنوان المشروع</label>
+                    <input name="title" defaultValue={editingProject?.title} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white text-right" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">الوصف</label>
+                    <textarea name="description" defaultValue={editingProject?.description} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white text-right h-24" required />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2 text-right">
+                      <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">صورة 'قبل'</label>
+                      <ImageInput value={activeProjectBefore} onChange={setActiveProjectBefore} required />
+                    </div>
+                    <div className="space-y-2 text-right">
+                      <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">صورة 'بعد'</label>
+                      <ImageInput value={activeProjectAfter} onChange={setActiveProjectAfter} required />
+                    </div>
+                  </div>
+                  <button type="submit" className="w-full bg-gold-500 text-egypt-black py-5 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-glow mt-4">
+                    <Save className="w-5 h-5" />
+                    حفظ المشروع
                   </button>
                 </form>
               </div>
