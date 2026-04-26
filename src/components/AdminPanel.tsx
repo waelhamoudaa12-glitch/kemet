@@ -337,10 +337,10 @@ export function AdminPanel({
                   <h3 className="text-2xl font-black text-white">{editingStyle ? 'تعديل النمط' : 'إضافة نمط جديد'}</h3>
                   <button onClick={() => { setIsAddingStyle(false); setEditingStyle(null); }} className="text-gold-500/40 hover:text-gold-500"><X /></button>
                 </div>
-                <form className="space-y-6" onSubmit={(e) => {
+                <form className="space-y-6" onSubmit={async (e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
-                  handleSaveStyle({
+                  await handleSaveStyle({
                     id: editingStyle?.id,
                     name: formData.get('name'),
                     description: formData.get('description'),
