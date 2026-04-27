@@ -505,7 +505,7 @@ export default function App() {
             >
               <div className="text-center mb-20 text-right">
                 <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-xs mb-4 block">PortFolio Showcase</span>
-                <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight">من <span className="gold-gradient italic">تصميمنا</span></h2>
+                <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight text-white">من <span className="text-gold-500">تصميمنا</span></h2>
                 <p className="text-white/70 max-w-2xl ml-auto text-lg leading-relaxed font-black">
                   نحن نفخر بتنفيذ أفكار عملائنا وتحويلها إلى واقع ملموس بدقة عالية وفخامة لا تضاهى. شاهد الفرق في التحول بين الصور قبل التشطيب وبعده.
                 </p>
