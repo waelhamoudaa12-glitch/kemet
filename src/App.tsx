@@ -388,7 +388,7 @@ export default function App() {
                   <div className="text-right">
                     <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-[10px] md:text-xs mb-4 block underline underline-offset-8"> masterpieces: من أعمالنا</span>
                     <h2 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter text-white">روائع <span className="gold-gradient">كيميت</span></h2>
-                    <p className="text-gold-200/40 font-medium text-lg max-w-xl">اكتشف الفرق الذي نصنعه في كل مساحة. المس السهم لرؤية التحول.</p>
+                    <p className="text-white/80 font-medium text-lg max-w-xl">اكتشف الفرق الذي نصنعه في كل مساحة. المس السهم لرؤية التحول.</p>
                   </div>
                   <button 
                     onClick={() => setCurrentPage('portfolio')}
@@ -413,7 +413,7 @@ export default function App() {
                          <img 
                             src={project.beforeImage} 
                             alt="Before" 
-                            className={`absolute inset-0 w-full h-full object-cover grayscale transition-opacity duration-700 ease-in-out ${activeProjectHover === project.id ? 'opacity-0' : 'opacity-40'}`}
+                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${activeProjectHover === project.id ? 'opacity-0' : 'opacity-40'}`}
                          />
                          {/* After Image */}
                          <img 
@@ -441,7 +441,7 @@ export default function App() {
                          <div className="absolute inset-0 bg-gradient-to-t from-egypt-black/80 via-transparent to-transparent pointer-events-none" />
                          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 text-right pointer-events-none">
                             <h3 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tighter">{project.title}</h3>
-                            <p className="text-gold-200/50 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500">{project.description}</p>
+                            <p className="text-white/60 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500">{project.description}</p>
                          </div>
                       </div>
                     </motion.div>
@@ -527,7 +527,7 @@ export default function App() {
                           <img 
                             src={project.beforeImage} 
                             alt="Before" 
-                            className="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 ease-in-out" 
+                            className="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-all duration-1000 ease-in-out" 
                           />
                           <div className="absolute top-6 left-6 bg-egypt-black/80 backdrop-blur-xl px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] text-white border border-white/10 z-10">قبل</div>
                         </div>
@@ -544,7 +544,7 @@ export default function App() {
                     </div>
                     <div className="text-right px-4">
                       <h3 className="text-3xl font-black mb-3 text-white group-hover:text-gold-500 transition-colors uppercase tracking-tight italic">{project.title}</h3>
-                      <p className="text-gold-200/40 font-medium leading-relaxed italic text-sm mb-6">{project.description}</p>
+                      <p className="text-white/60 font-medium leading-relaxed italic text-sm mb-6">{project.description}</p>
                       <button 
                         onClick={() => setSelectedProject(project)}
                         className="bg-gold-500/10 text-gold-500 border border-gold-500/20 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2 justify-center w-full"
@@ -592,7 +592,7 @@ export default function App() {
                     <div className="text-right mb-16">
                       <h2 className="text-5xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter">{selectedProject.title}</h2>
                       <p className="text-gold-500 font-bold uppercase tracking-[0.4em] text-sm mb-4 border-b border-gold-500/20 pb-4">Project Details / تفاصيل المشروع</p>
-                      <p className="text-gold-200/50 text-xl font-medium leading-relaxed max-w-3xl ml-auto">{selectedProject.description}</p>
+                      <p className="text-white/80 text-xl font-medium leading-relaxed max-w-3xl ml-auto">{selectedProject.description}</p>
                     </div>
 
                     <div className="space-y-24">
@@ -602,7 +602,7 @@ export default function App() {
                              <div className="space-y-4">
                                 <span className="bg-egypt-dark text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-white/10 inline-block">قبل التحول</span>
                                 <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                   <SmoothImage src={selectedProject.beforeImage} alt="Before" className="w-full aspect-video md:aspect-[4/5] lg:aspect-video grayscale" />
+                                   <SmoothImage src={selectedProject.beforeImage} alt="Before" className="w-full aspect-video md:aspect-[4/5] lg:aspect-video" />
                                 </div>
                              </div>
                              <div className="space-y-4">
@@ -621,7 +621,7 @@ export default function App() {
                                  <div className="space-y-4">
                                     <span className="bg-egypt-dark text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-white/10 inline-block">قبل {idx + 2}</span>
                                     <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                       <SmoothImage src={pair.before} alt={`Before ${idx + 2}`} className="w-full aspect-video grayscale" />
+                                       <SmoothImage src={pair.before} alt={`Before ${idx + 2}`} className="w-full aspect-video" />
                                     </div>
                                  </div>
                                  <div className="space-y-4">
