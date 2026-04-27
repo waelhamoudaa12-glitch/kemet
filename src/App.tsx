@@ -60,6 +60,7 @@ const SmoothImage = ({ src, alt, className, referrerPolicy }: { src: string; alt
             <img
                 src={src}
                 alt={alt}
+                loading="lazy"
                 onLoad={() => setIsLoaded(true)}
                 className={`w-full h-full object-cover transition-opacity duration-300 ease-in-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                 referrerPolicy={referrerPolicy}
@@ -822,14 +823,16 @@ export default function App() {
                       </p>
                     </header>
 
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                       {appCategories[currentCategoryIndex]?.options?.map((option: any) => (
-                         <button
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                        {appCategories[currentCategoryIndex]?.options?.map((option: any) => {
+                          const isSelected = Array.isArray(selections[appCategories[currentCategoryIndex].id]) && (selections[appCategories[currentCategoryIndex].id] as string[]).includes(option.id);
+                          return (
+                          <button
                            key={option.id}
                            onClick={() => handleOptionSelect(appCategories[currentCategoryIndex].id, option.id)}
-                           className={`group relative text-right flex flex-col items-stretch rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-300 border-2 will-change-transform ${
-                             Array.isArray(selections[appCategories[currentCategoryIndex].id]) && (selections[appCategories[currentCategoryIndex].id] as string[]).includes(option.id)
-                               ? 'border-gold-500 bg-gold-500/10 shadow-[0_0_40px_rgba(212,175,55,0.2)] scale-[1.02]' 
+                           className={`group relative text-right flex flex-col items-stretch rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-200 border-2 active:scale-95 will-change-transform ${
+                             isSelected
+                               ? 'border-gold-500 bg-gold-500/10 scale-[1.02]' 
                                : 'border-gold-500/5 bg-egypt-dark hover:border-gold-500/20'
                            }`}
                          >
@@ -840,26 +843,22 @@ export default function App() {
                                className="w-full h-full"
                                referrerPolicy="no-referrer"
                              />
-                             {Array.isArray(selections[appCategories[currentCategoryIndex].id]) && (selections[appCategories[currentCategoryIndex].id] as string[]).includes(option.id) && (
-                               <motion.div 
-                                 initial={{ opacity: 0, scale: 0.5 }}
-                                 animate={{ opacity: 1, scale: 1 }}
-                                 transition={SPRING_TRANSITION}
-                                 className="absolute inset-0 bg-gold-500/20 backdrop-blur-[2px] flex items-center justify-center z-20"
-                               >
-                                  <div className="bg-gold-500 text-egypt-black p-2 rounded-full shadow-2xl scale-125">
-                                   <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
+                             {isSelected && (
+                               <div className="absolute inset-0 bg-gold-500/10 flex items-center justify-center z-20">
+                                  <div className="bg-gold-500 text-egypt-black p-1.5 rounded-full shadow-lg scale-110">
+                                   <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" />
                                  </div>
-                               </motion.div>
+                               </div>
                              )}
                            </div>
                           
                           <div className="p-3 md:p-5 flex flex-col justify-center flex-1">
                             <p className="text-[8px] md:text-[10px] font-black text-gold-500 uppercase tracking-widest mb-0.5 opacity-60">KEMET ROYAL</p>
-                            <h4 className="text-sm md:text-lg font-black leading-tight text-white truncate">{option.name}</h4>
-                          </div>
-                        </button>
-                      ))}
+                             <h4 className="text-sm md:text-lg font-black leading-tight text-white truncate">{option.name}</h4>
+                           </div>
+                         </button>
+                       );
+                     })}
                     </div>
 
                     <footer className="mt-24 pb-12 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-gray-100 pt-12">
