@@ -516,6 +516,7 @@ export function AdminPanel({
                     description: formData.get('description'),
                     beforeImage: activeProjectBefore,
                     afterImage: activeProjectAfter,
+                    images: editingProject?.images || []
                   });
                 }}>
                   <div className="space-y-2">
@@ -528,14 +529,71 @@ export function AdminPanel({
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2 text-right">
-                      <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">صورة 'قبل'</label>
+                      <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">صورة 'قبل' الرئيسية</label>
                       <ImageInput value={activeProjectBefore} onChange={setActiveProjectBefore} required />
                     </div>
                     <div className="space-y-2 text-right">
-                      <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">صورة 'بعد'</label>
+                      <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">صورة 'بعد' الرئيسية</label>
                       <ImageInput value={activeProjectAfter} onChange={setActiveProjectAfter} required />
                     </div>
                   </div>
+
+                  {/* Additional Images Section */}
+                  <div className="space-y-6 pt-6 border-t border-gold-500/10">
+                    <div className="flex justify-between items-center">
+                       <button 
+                         type="button"
+                         onClick={() => {
+                            const newImages = [...(editingProject?.images || []), { before: '', after: '' }];
+                            setEditingProject({ ...editingProject ?? { id: `project_${Date.now()}`, title: '', description: '' }, images: newImages });
+                         }}
+                         className="text-gold-500 border border-gold-500/20 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-gold-500/5 hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2"
+                       >
+                          <Plus className="w-3 h-3" />
+                          إضافة مجموعة صور (قبل/بعد)
+                       </button>
+                       <h4 className="text-lg font-black text-white">صور إضافية</h4>
+                    </div>
+
+                    <div className="space-y-8">
+                       {(editingProject?.images || []).map((pair: any, idx: number) => (
+                          <div key={idx} className="bg-egypt-black/50 p-6 rounded-3xl border border-gold-500/10 space-y-4">
+                             <div className="flex justify-between items-center mb-2">
+                                <button 
+                                  type="button"
+                                  onClick={() => {
+                                     const newImages = editingProject.images.filter((_: any, i: number) => i !== idx);
+                                     setEditingProject({ ...editingProject, images: newImages });
+                                  }}
+                                  className="text-red-500 hover:text-red-400"
+                                >
+                                   <X className="w-4 h-4" />
+                                </button>
+                                <span className="text-gold-500 font-bold text-xs">مجموعة {idx + 2}</span>
+                             </div>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <ImageInput 
+                                  value={pair.before} 
+                                  onChange={(val) => {
+                                     const newImages = [...editingProject.images];
+                                     newImages[idx] = { ...newImages[idx], before: val };
+                                     setEditingProject({ ...editingProject, images: newImages });
+                                  }} 
+                                />
+                                <ImageInput 
+                                  value={pair.after} 
+                                  onChange={(val) => {
+                                     const newImages = [...editingProject.images];
+                                     newImages[idx] = { ...newImages[idx], after: val };
+                                     setEditingProject({ ...editingProject, images: newImages });
+                                  }} 
+                                />
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                  </div>
+
                   <button type="submit" className="w-full bg-gold-500 text-egypt-black py-5 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-glow mt-4">
                     <Save className="w-5 h-5" />
                     حفظ المشروع

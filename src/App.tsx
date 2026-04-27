@@ -94,6 +94,7 @@ export default function App() {
   const [appPortfolio, setAppPortfolio] = useState<any[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeProjectHover, setActiveProjectHover] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<any | null>(null);
 
   useEffect(() => {
     syncInitialData();
@@ -433,6 +434,7 @@ export default function App() {
                            className="absolute inset-0 z-20 cursor-pointer"
                            onMouseEnter={() => setActiveProjectHover(project.id)}
                            onMouseLeave={() => setActiveProjectHover(null)}
+                           onClick={() => setSelectedProject(project)}
                          />
 
                          {/* Overlay Info */}
@@ -542,7 +544,14 @@ export default function App() {
                     </div>
                     <div className="text-right px-4">
                       <h3 className="text-3xl font-black mb-3 text-white group-hover:text-gold-500 transition-colors uppercase tracking-tight italic">{project.title}</h3>
-                      <p className="text-gold-200/40 font-medium leading-relaxed italic text-sm">{project.description}</p>
+                      <p className="text-gold-200/40 font-medium leading-relaxed italic text-sm mb-6">{project.description}</p>
+                      <button 
+                        onClick={() => setSelectedProject(project)}
+                        className="bg-gold-500/10 text-gold-500 border border-gold-500/20 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2 justify-center w-full"
+                      >
+                         <Maximize2 className="w-4 h-4" />
+                         عرض كل الصور
+                      </button>
                     </div>
                   </motion.div>
                 ))}
@@ -559,6 +568,86 @@ export default function App() {
               </div>
             </motion.div>
           )}
+
+          {/* Project Details Modal */}
+          <AnimatePresence>
+            {selectedProject && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] bg-egypt-black flex flex-col pt-24 overflow-hidden"
+              >
+                <div className="absolute top-8 left-8 z-10">
+                  <button 
+                    onClick={() => setSelectedProject(null)}
+                    className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center bg-gold-500 text-egypt-black rounded-full shadow-glow"
+                  >
+                    <X className="w-6 h-6 md:w-8 md:h-8" />
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 py-12 md:px-20 md:py-20 pharaonic-pattern">
+                  <div className="max-w-5xl mx-auto">
+                    <div className="text-right mb-16">
+                      <h2 className="text-5xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter">{selectedProject.title}</h2>
+                      <p className="text-gold-500 font-bold uppercase tracking-[0.4em] text-sm mb-4 border-b border-gold-500/20 pb-4">Project Details / تفاصيل المشروع</p>
+                      <p className="text-gold-200/50 text-xl font-medium leading-relaxed max-w-3xl ml-auto">{selectedProject.description}</p>
+                    </div>
+
+                    <div className="space-y-24">
+                       {/* Main Image Pair */}
+                       <div className="space-y-8">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             <div className="space-y-4">
+                                <span className="bg-egypt-dark text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-white/10 inline-block">قبل التحول</span>
+                                <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
+                                   <SmoothImage src={selectedProject.beforeImage} alt="Before" className="w-full aspect-video md:aspect-[4/5] lg:aspect-video grayscale" />
+                                </div>
+                             </div>
+                             <div className="space-y-4">
+                                <span className="bg-gold-500 text-egypt-black px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest inline-block">بعد التشطيب</span>
+                                <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
+                                   <SmoothImage src={selectedProject.afterImage} alt="After" className="w-full aspect-video md:aspect-[4/5] lg:aspect-video" />
+                                </div>
+                             </div>
+                          </div>
+                       </div>
+
+                       {/* Additional Image Pairs if any */}
+                       {selectedProject.images?.map((pair: any, idx: number) => (
+                          <div key={idx} className="space-y-8 pt-24 border-t border-gold-500/10">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                 <div className="space-y-4">
+                                    <span className="bg-egypt-dark text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-white/10 inline-block">قبل {idx + 2}</span>
+                                    <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
+                                       <SmoothImage src={pair.before} alt={`Before ${idx + 2}`} className="w-full aspect-video grayscale" />
+                                    </div>
+                                 </div>
+                                 <div className="space-y-4">
+                                    <span className="bg-gold-500 text-egypt-black px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest inline-block">بعد {idx + 2}</span>
+                                    <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
+                                       <SmoothImage src={pair.after} alt={`After ${idx + 2}`} className="w-full aspect-video" />
+                                    </div>
+                                 </div>
+                              </div>
+                          </div>
+                       ))}
+                    </div>
+
+                    <div className="mt-32 text-center pb-20">
+                        <button 
+                          onClick={() => setSelectedProject(null)}
+                          className="bg-egypt-dark text-gold-500 border border-gold-500/30 px-12 py-6 rounded-2xl font-black text-xl hover:bg-gold-500 hover:text-egypt-black transition-all"
+                        >
+                          العودة للمقالات
+                        </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
 
           {currentPage === 'styles' && (
