@@ -53,23 +53,17 @@ const ICON_MAP: Record<string, any> = {
 const SmoothImage = ({ src, alt, className, referrerPolicy }: { src: string; alt: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     return (
-        <div className={`relative overflow-hidden transform-gpu translate-z-0 ${className}`}>
-            <AnimatePresence mode="wait">
-                {!isLoaded && (
-                    <motion.div 
-                        key="placeholder"
-                        initial={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-gold-500/5 animate-pulse z-10"
-                    />
-                )}
-            </AnimatePresence>
+        <div className={`relative overflow-hidden ${className}`}>
+            {!isLoaded && (
+                <div role="presentation" className="absolute inset-0 bg-gold-500/5 animate-pulse z-10" />
+            )}
             <img
                 src={src}
                 alt={alt}
                 onLoad={() => setIsLoaded(true)}
-                className={`w-full h-full object-cover transition-all duration-700 ease-out ${isLoaded ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-110 blur-xl'}`}
+                className={`w-full h-full object-cover transition-opacity duration-300 ease-in-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                 referrerPolicy={referrerPolicy}
+                loading="lazy"
             />
         </div>
     );
@@ -674,13 +668,10 @@ export default function App() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
               {appStyles.map((style, idx) => (
-                    <motion.div
+                    <div
                       key={style.id}
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1 }}
                       onClick={() => handleSelectStyle(style.id)}
-                      className="cursor-pointer group flex flex-row items-stretch bg-egypt-dark border border-gold-500/10 rounded-[2.5rem] overflow-hidden hover:border-gold-500/40 transition-all duration-500 hover:-translate-y-2 shadow-2xl"
+                      className="cursor-pointer group flex flex-row items-stretch bg-egypt-dark border border-gold-500/10 rounded-[2.5rem] overflow-hidden hover:border-gold-500/40 transition-all duration-300 shadow-2xl"
                     >
                       <div className="w-2/5 shrink-0 overflow-hidden relative">
                         <SmoothImage 
@@ -704,7 +695,7 @@ export default function App() {
                           {style.description}
                         </p>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
               </div>
             </motion.div>
@@ -738,7 +729,7 @@ export default function App() {
                     saveSelection(selections, true);
                     setCurrentPage('summary');
                   }}
-                  className="px-6 py-2 rounded-full text-xs font-black bg-gold-500 text-egypt-black shadow-lg animate-pulse mr-2"
+                  className="px-6 py-2 rounded-full text-xs font-black bg-gold-500 text-egypt-black shadow-lg shadow-gold-500/20 mr-2"
                 >
                   لقد انتهيت
                 </button>
@@ -808,8 +799,9 @@ export default function App() {
                 <div className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-20 bg-egypt-black pharaonic-pattern">
                   <motion.div
                     key={currentCategoryIndex}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
                     className="max-w-5xl mx-auto text-right"
                   >
                     <header className="mb-12 lg:mb-16">
@@ -832,11 +824,10 @@ export default function App() {
 
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                        {appCategories[currentCategoryIndex]?.options?.map((option: any) => (
-                         <motion.button
+                         <button
                            key={option.id}
-                           whileTap={{ scale: 0.98 }}
                            onClick={() => handleOptionSelect(appCategories[currentCategoryIndex].id, option.id)}
-                           className={`group relative text-right flex flex-col items-stretch rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 will-change-transform ${
+                           className={`group relative text-right flex flex-col items-stretch rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-300 border-2 will-change-transform ${
                              Array.isArray(selections[appCategories[currentCategoryIndex].id]) && (selections[appCategories[currentCategoryIndex].id] as string[]).includes(option.id)
                                ? 'border-gold-500 bg-gold-500/10 shadow-[0_0_40px_rgba(212,175,55,0.2)] scale-[1.02]' 
                                : 'border-gold-500/5 bg-egypt-dark hover:border-gold-500/20'
@@ -867,7 +858,7 @@ export default function App() {
                             <p className="text-[8px] md:text-[10px] font-black text-gold-500 uppercase tracking-widest mb-0.5 opacity-60">KEMET ROYAL</p>
                             <h4 className="text-sm md:text-lg font-black leading-tight text-white truncate">{option.name}</h4>
                           </div>
-                        </motion.button>
+                        </button>
                       ))}
                     </div>
 
@@ -882,11 +873,11 @@ export default function App() {
                       </button>
                       
                       <div className="flex gap-3">
-                        {appCategories.map((_, i) => (
+                        {appCategories.map((cat, i) => (
                           <div 
                             key={i} 
-                            className={`h-1.5 rounded-full transition-all duration-500 ${
-                              i === currentCategoryIndex ? 'w-12 bg-gold-500' : 'w-3 bg-gold-500/10'
+                            className={`h-1 rounded-full transition-all duration-300 ${
+                              i === currentCategoryIndex ? 'w-10 bg-gold-500' : 'w-2 bg-gold-500/20'
                             }`} 
                           />
                         ))}
