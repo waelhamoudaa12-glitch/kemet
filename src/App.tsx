@@ -1016,152 +1016,108 @@ export default function App() {
                        <p className="text-gold-200/50 max-w-md font-medium text-lg leading-relaxed">إذا كنت تريد أن ترى تصميمك في بيتك، يرجى أن ترسل لهذا الرقم على الواتساب 01554853093</p>
                     </div>
 
-                    <div className="relative z-10 flex flex-col sm:flex-row gap-6 w-full md:w-auto">
-                      <button 
-                        onClick={() => window.open('https://wa.me/201554853093', '_blank')}
-                        className="bg-gold-500 text-egypt-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-[0_0_30px_rgba(212,175,55,0.3)]"
-                      >
-                        WhatsApp
-                      </button>
-                      <button 
-                         onClick={() => setCurrentPage('styles')}
-                         className="bg-egypt-black text-gold-500 border border-gold-500/30 px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gold-500/5 transition-all"
-                      >
-                        New Design
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          )}
+                     <div className="relative z-10 flex flex-col sm:flex-row gap-6 w-full md:w-auto">
+                       <button 
+                         onClick={() => window.open('https://wa.me/201554853093', '_blank')}
+                         className="bg-gold-500 text-egypt-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-[0_0_30px_rgba(212,175,55,0.3)]"
+                       >
+                         WhatsApp
+                       </button>
+                       <button 
+                          onClick={() => setCurrentPage('styles')}
+                          className="bg-egypt-black text-gold-500 border border-gold-500/30 px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gold-500/5 transition-all"
+                       >
+                         New Design
+                       </button>
+                     </div>
+                   </div>
+                 </>
+               )}
+             </motion.div>
+           )}
 
-          {currentPage === 'summary' && (
+           {currentPage === 'summary' && (
             <motion.div 
               key="summary"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="min-h-dvh py-16 px-6 lg:px-20 bg-egypt-black pharaonic-pattern overflow-y-auto"
+              className="min-h-dvh py-24 px-6 lg:px-20 bg-egypt-black pharaonic-pattern overflow-y-auto"
             >
-              <div className="max-w-6xl mx-auto">
-                <div className="bg-egypt-dark rounded-[3rem] shadow-2xl overflow-hidden border border-gold-500/10 mb-12">
-                  <div className="flex flex-col lg:flex-row">
-                    {/* Left Side: Receipt Details */}
-                    <div className="flex-1 p-8 md:p-16 flex flex-col">
-                      <div className="flex justify-between items-start mb-12">
-                        <div>
-                          <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-[10px] md:text-xs mb-4 block underline underline-offset-8 decoration-2">KEMET Final Ticket</span>
-                          <h2 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter text-white">ملخص <br/><span className="gold-gradient">اختياراتك</span></h2>
-                        </div>
-                        <div className="text-left hidden sm:block">
-                           <div className="w-16 h-16 border-4 border-gold-500 flex items-center justify-center font-black text-2xl mb-2 text-gold-500">K</div>
-                           <p className="text-[10px] font-mono text-gold-500/40 font-bold">VERIFIED DESIGN</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-6 flex-1">
-                        {appCategories.map((cat, idx) => {
-                          const selectionIds = selections[cat.id] as string[] || [];
-                          const selectedOptions = cat.options.filter((o: any) => selectionIds.includes(o.id));
-                          
-                          return (
-                            <div key={cat.id} className="flex justify-between items-start py-4 border-b border-gold-500/10 group hover:px-2 transition-all">
-                               <div className="flex items-start gap-4">
-                                  <div className="w-8 h-8 rounded-lg bg-gold-500/5 flex items-center justify-center text-gold-200/30 group-hover:bg-gold-500/10 group-hover:text-gold-500 transition-colors mt-1">
-                                     <cat.icon className="w-4 h-4" />
-                                  </div>
-                                  <div>
-                                     <p className="text-[10px] text-gold-200/40 font-bold uppercase tracking-widest leading-none mb-2">{cat.name}</p>
-                                     <div className="flex flex-wrap gap-2 text-right">
-                                       {selectedOptions.length > 0 ? (
-                                         selectedOptions.map(opt => (
-                                           <div key={opt.id} className="flex items-center gap-2 bg-egypt-black pr-1 pl-3 py-1 rounded-full text-[10px] md:text-xs font-bold border border-gold-500/10 text-gold-500 shadow-lg group-hover:scale-105 transition-transform">
-                                              <div className="w-6 h-6 rounded-full overflow-hidden border border-gold-500/20">
-                                                <SmoothImage 
-                                                  src={opt.image} 
-                                                  alt={opt.name} 
-                                                  className="w-full h-full"
-                                                  referrerPolicy="no-referrer"
-                                                />
-                                              </div>
-                                              <span>{opt.name}</span>
-                                           </div>
-                                         ))
-                                       ) : (
-                                         <span className="text-gold-500/20 text-xs italic">لا توجد اختيارات</span>
-                                       )}
-                                     </div>
-                                  </div>
-                               </div>
-                               <span className="text-[10px] font-mono text-gold-500/20">#{idx + 1}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      <div className="mt-12 pt-12 border-t-2 border-dashed border-gold-500/10 flex flex-col sm:flex-row gap-6">
-                        <button 
-                          onClick={() => window.open('https://wa.me/201554853093', '_blank')}
-                          className="flex-1 bg-gold-500 text-egypt-black py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gold-600 transition-all flex items-center justify-center gap-4 shadow-xl shadow-gold-500/20"
-                        >
-                          تواصل عبر الواتساب
-                          <ArrowRight className="w-5 h-5 opacity-50" />
-                        </button>
-                        <button 
-                          onClick={() => setCurrentCategoryIndex(0) || setCurrentPage('configurator')}
-                          className="flex-1 border-2 border-gold-500/30 text-gold-500 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:border-gold-500 transition-all"
-                        >
-                          تعديل الاختيارات
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Right Side: Visual Confirmation */}
-                    <div className="w-full lg:w-[45%] bg-gold-500 relative overflow-hidden flex flex-col p-8 md:p-16 text-egypt-black min-h-[400px]">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl opacity-50" />
-                        
-                        <div className="relative z-10 flex-1 flex flex-col justify-center text-center">
-                          {/* Check icon removed */}
-                          <h3 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">جاهز للتنفيذ!</h3>
-                          <p className="text-egypt-black/60 font-medium mb-12 max-w-sm mx-auto leading-relaxed">
-                            لقد قمت باختيار أفضل الخامات بناءً على نمط <br/>
-                            <span className="text-white font-black text-2xl">{appStyles.find(s => s.id === selectedStyle)?.name}</span>
-                          </p>
-                          
-                          <div className="bg-white/10 backdrop-blur-md rounded-[2.5rem] p-4 p-8 border border-white/20 mt-auto">
-                             <div className="w-full aspect-video rounded-2xl overflow-hidden mb-4 shadow-2xl relative group/style">
-                                <img 
-                                  src={appStyles.find(s => s.id === selectedStyle)?.image} 
-                                  className="w-full h-full object-cover group-hover/style:scale-110 transition-transform duration-700"
-                                  alt="Style"
-                                />
-                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-egypt-black/80 px-4 py-3 flex gap-2 justify-center">
-                                   {appCategories.map(cat => {
-                                     const sIds = selections[cat.id] as string[] || [];
-                                     if (sIds.length === 0) return null;
-                                     const opt = cat.options.find((o: any) => o.id === sIds[0]);
-                                     if (!opt) return null;
-                                     return (
-                                       <div key={cat.id} title={opt.name} className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-gold-500 shadow-xl shrink-0 hover:scale-125 transition-transform cursor-pointer will-change-transform">
-                                          <SmoothImage src={opt.image} alt={opt.name} className="w-full h-full" referrerPolicy="no-referrer" />
-                                       </div>
-                                     );
-                                   })}
-                                </div>
-                             </div>
-                             <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">DESIGN CODE</p>
-                             <p className="font-mono text-2xl font-black tracking-tighter">KE-OPT-{selectedStyle?.toUpperCase()}</p>
-                          </div>
-                        </div>
-                    </div>
-                  </div>
+              <div className="max-w-4xl mx-auto text-right">
+                <div className="mb-20">
+                  <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8 decoration-2">KEMET Final Design</span>
+                  <h2 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter text-white">ملخص <span className="gold-gradient">اختياراتك</span></h2>
+                  <p className="text-gold-200/50 text-xl font-medium">هذه هي العناصر التي وقع اختيارك عليها لتجعل منزلك لوحة فنية.</p>
                 </div>
 
-                <div className="flex justify-center flex-wrap gap-12 py-12 opacity-10 grayscale contrast-125 text-gold-500">
-                   {appCategories.slice(0, 4).map(cat => {
-                      const Icon = cat.icon || Palette;
-                      return <Icon key={cat.id} className="w-12 h-12" />;
-                   })}
+                <div className="space-y-16">
+                  {/* Style Background */}
+                  <div className="bg-egypt-dark rounded-[3rem] p-8 md:p-12 border border-gold-500/20 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-full opacity-10 group-hover:opacity-20 transition-opacity">
+                       <img src={appStyles.find(s => s.id === selectedStyle)?.image} className="w-full h-full object-cover" alt="" />
+                    </div>
+                    <div className="relative z-10">
+                      <p className="text-gold-500 font-black text-xs uppercase tracking-widest mb-4">النمط المختار / Selected Style</p>
+                      <h3 className="text-4xl md:text-6xl font-black text-white mb-2">{appStyles.find(s => s.id === selectedStyle)?.name}</h3>
+                      <p className="text-gold-200/60 max-w-2xl ml-auto">{appStyles.find(s => s.id === selectedStyle)?.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Categories */}
+                  {appCategories.map((cat) => {
+                    const selectionIds = selections[cat.id] as string[] || [];
+                    const selectedOptions = cat.options.filter((o: any) => selectionIds.includes(o.id));
+                    
+                    if (selectedOptions.length === 0) return null;
+
+                    return (
+                      <motion.div 
+                        key={cat.id}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="space-y-8"
+                      >
+                         <div className="flex items-center gap-6 border-b border-gold-500/10 pb-6">
+                            <cat.icon className="w-10 h-10 text-gold-500" />
+                            <h3 className="text-3xl md:text-4xl font-black text-white">{cat.name}</h3>
+                         </div>
+                         
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                           {selectedOptions.map(opt => (
+                             <div key={opt.id} className="bg-egypt-dark/50 rounded-[2.5rem] p-6 border border-gold-500/10 hover:border-gold-500/30 transition-all flex flex-col gap-6">
+                                <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl border border-gold-500/10">
+                                   <SmoothImage src={opt.image} alt={opt.name} className="w-full h-full" referrerPolicy="no-referrer" />
+                                </div>
+                                <div>
+                                   <h4 className="text-2xl font-black text-gold-500 mb-2">{opt.name}</h4>
+                                   <p className="text-xs text-gold-200/40 uppercase tracking-widest font-black">Option Verified</p>
+                                </div>
+                             </div>
+                           ))}
+                         </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-32 bg-gold-500 rounded-[3rem] p-12 md:p-20 text-egypt-black text-center shadow-glow">
+                   <h3 className="text-4xl md:text-6xl font-black mb-8 tracking-tighter">تواصل معنا حتى تنفذ ما اخترته في بيتك</h3>
+                   <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                     <button 
+                        onClick={() => window.open('https://wa.me/201554853093', '_blank')}
+                        className="bg-egypt-black text-gold-500 px-16 py-6 rounded-2xl font-black text-xl uppercase tracking-widest hover:scale-105 transition-all shadow-2xl flex items-center justify-center gap-4"
+                     >
+                        واتساب
+                        <ArrowRight className="w-6 h-6" />
+                     </button>
+                     <button 
+                        onClick={() => setCurrentCategoryIndex(0) || setCurrentPage('configurator')}
+                        className="bg-white/20 backdrop-blur-md text-egypt-black border-2 border-egypt-black/20 px-16 py-6 rounded-2xl font-black text-xl hover:bg-white/30 transition-all"
+                     >
+                        تعديل الاختيارات
+                     </button>
+                   </div>
                 </div>
               </div>
             </motion.div>
