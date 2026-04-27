@@ -463,18 +463,18 @@ export default function App() {
                  <div className="lg:w-1/2 text-right">
                     <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-xs mb-6 lg:mb-8 block underline underline-offset-8">KEMET Identity</span>
                     <h2 className="text-4xl md:text-6xl lg:text-7xl font-black mb-8 lg:mb-10 leading-tight text-white">نحن <span className="gold-gradient">KEMET</span> <br/> مستقبل التشطيب</h2>
-                    <div className="prose prose-lg md:prose-xl font-medium text-gold-200/50 leading-relaxed mb-10 lg:mb-12">
+                    <div className="prose prose-lg md:prose-xl font-medium text-white/60 leading-relaxed mb-10 lg:mb-12">
                        <p>شركة KEMET هي شريكك الموثوق في رحلة تحويل مساحتك الخاصة إلى واقع ملموس. استوحينا اسمنا من "كيميت" (الأرض السوداء) لنعكس العراقة والأصالة في البناء والتشطيب.</p>
                        <p className="mt-4 md:mt-6">نحن نؤمن بالشفافية، الجودة، والابتكار. نوفر لك الأدوات اللازمة لتصميم بيتك بنفسك، مع توفير أفضل الخامات تحت إشراف نخبة من المهندسين.</p>
                     </div>
                     <div className="grid grid-cols-2 gap-6 md:gap-8 py-6 md:py-8 border-t border-gold-500/10">
                        <div>
                           <p className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-gold-500">1,200+</p>
-                          <p className="text-[10px] md:text-sm text-gold-200/30 font-bold uppercase tracking-widest">عميل سعيد</p>
+                          <p className="text-[10px] md:text-sm text-white/40 font-bold uppercase tracking-widest">عميل سعيد</p>
                        </div>
                        <div>
                           <p className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-gold-500">15</p>
-                          <p className="text-[10px] md:text-sm text-gold-200/30 font-bold uppercase tracking-widest">جائزة تصميم</p>
+                          <p className="text-[10px] md:text-sm text-white/40 font-bold uppercase tracking-widest">جائزة تصميم</p>
                        </div>
                     </div>
                  </div>
@@ -505,8 +505,8 @@ export default function App() {
             >
               <div className="text-center mb-20 text-right">
                 <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-xs mb-4 block">PortFolio Showcase</span>
-                <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight">من <span className="gold-gradient italic underline underline-offset-[12px] decoration-gold-500/30">تصميمنا</span></h2>
-                <p className="text-gold-200/50 max-w-2xl ml-auto text-lg leading-relaxed font-black">
+                <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight">من <span className="gold-gradient italic">تصميمنا</span></h2>
+                <p className="text-white/70 max-w-2xl ml-auto text-lg leading-relaxed font-black">
                   نحن نفخر بتنفيذ أفكار عملائنا وتحويلها إلى واقع ملموس بدقة عالية وفخامة لا تضاهى. شاهد الفرق في التحول بين الصور قبل التشطيب وبعده.
                 </p>
               </div>
@@ -700,7 +700,7 @@ export default function App() {
                           <h3 className="text-xl md:text-2xl font-black text-white">{style.name}</h3>
                           <span className="text-[10px] font-mono text-gold-500/30 font-black tracking-widest uppercase">KEMET 0{idx+1}</span>
                         </div>
-                        <p className="text-gold-200/50 font-medium text-xs md:text-sm leading-relaxed">
+                        <p className="text-white/60 font-medium text-xs md:text-sm leading-relaxed">
                           {style.description}
                         </p>
                       </div>
@@ -825,7 +825,7 @@ export default function App() {
                       <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-white">
                         اختر <span className="gold-gradient">{appCategories[currentCategoryIndex]?.name}</span>
                       </h2>
-                      <p className="text-gold-200/50 text-sm md:text-lg max-w-2xl ml-auto leading-relaxed font-medium">
+                      <p className="text-white/70 text-sm md:text-lg max-w-2xl ml-auto leading-relaxed font-medium">
                         اختر ما يناسب ذوقك وتطلعاتك الملكية، نحن نضمن لك الجودة والجمال في كل قطعة تحت اسم كيميت.
                       </p>
                     </header>
@@ -937,7 +937,7 @@ export default function App() {
                 <div className="bg-egypt-dark rounded-[3rem] p-12 md:p-24 text-center border-2 border-dashed border-gold-500/10">
                    <Palette className="w-16 h-16 mx-auto mb-8 text-gold-500/20" />
                    <h3 className="text-3xl font-black mb-4 text-white">لا توجد اختيارات بعد</h3>
-                   <p className="text-gold-200/50 mb-8 max-w-sm mx-auto">ابدأ رحلة تصميم منزلك الآن واختر أفضل الخامات والموديلات.</p>
+                   <p className="text-white/60 mb-8 max-w-sm mx-auto">ابدأ رحلة تصميم منزلك الآن واختر أفضل الخامات والموديلات.</p>
                    <button 
                     onClick={() => setCurrentPage('styles')}
                     className="bg-gold-500 text-egypt-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-gold-600 transition-all shadow-xl shadow-gold-500/20"
@@ -1013,7 +1013,7 @@ export default function App() {
                     
                     <div className="relative z-10 text-center md:text-right">
                        <h3 className="text-4xl md:text-5xl font-black mb-6 tracking-tighter">هل أعجبك <span className="gold-gradient">تصميمك الملكي؟</span></h3>
-                       <p className="text-gold-200/50 max-w-md font-medium text-lg leading-relaxed">إذا كنت تريد أن ترى تصميمك في بيتك، يرجى أن ترسل لهذا الرقم على الواتساب 01554853093</p>
+                       <p className="text-white/70 max-w-md font-medium text-lg leading-relaxed">إذا كنت تريد أن ترى تصميمك في بيتك، يرجى أن ترسل لهذا الرقم على الواتساب 01554853093</p>
                     </div>
 
                      <div className="relative z-10 flex flex-col sm:flex-row gap-6 w-full md:w-auto">
@@ -1047,7 +1047,7 @@ export default function App() {
                 <div className="mb-20">
                   <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-xs mb-4 block underline underline-offset-8 decoration-2">KEMET Final Design</span>
                   <h2 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter text-white">ملخص <span className="gold-gradient">اختياراتك</span></h2>
-                  <p className="text-gold-200/50 text-xl font-medium">هذه هي العناصر التي وقع اختيارك عليها لتجعل منزلك لوحة فنية.</p>
+                  <p className="text-white/70 text-xl font-medium">هذه هي العناصر التي وقع اختيارك عليها لتجعل منزلك لوحة فنية.</p>
                 </div>
 
                 <div className="space-y-16">
@@ -1059,7 +1059,7 @@ export default function App() {
                     <div className="relative z-10">
                       <p className="text-gold-500 font-black text-xs uppercase tracking-widest mb-4">النمط المختار / Selected Style</p>
                       <h3 className="text-4xl md:text-6xl font-black text-white mb-2">{appStyles.find(s => s.id === selectedStyle)?.name}</h3>
-                      <p className="text-gold-200/60 max-w-2xl ml-auto">{appStyles.find(s => s.id === selectedStyle)?.description}</p>
+                      <p className="text-white/70 max-w-2xl ml-auto">{appStyles.find(s => s.id === selectedStyle)?.description}</p>
                     </div>
                   </div>
 
@@ -1091,7 +1091,7 @@ export default function App() {
                                 </div>
                                 <div>
                                    <h4 className="text-2xl font-black text-gold-500 mb-2">{opt.name}</h4>
-                                   <p className="text-xs text-gold-200/40 uppercase tracking-widest font-black">Option Verified</p>
+                                   <p className="text-xs text-white/40 uppercase tracking-widest font-black">Option Verified</p>
                                 </div>
                              </div>
                            ))}
