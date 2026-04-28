@@ -31,5 +31,10 @@ service cloud.firestore {
     match /designs/{designId} {
       allow read, write: if true;
     }
+
+    // visits
+    match /visits/{visitId} {
+      allow read, write: if true;
+    }
   }
 }

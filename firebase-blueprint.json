@@ -73,6 +73,21 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["title", "beforeImage", "afterImage"]
+    },
+    "visits": {
+      "title": "Page Visit",
+      "description": "A single trackable visit",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Optional user id if logged in" },
+        "sessionId": { "type": "string" },
+        "country": { "type": "string" },
+        "city": { "type": "string" },
+        "userAgent": { "type": "string" },
+        "path": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userAgent", "path", "sessionId"]
     }
   },
   "firestore": {
@@ -95,6 +110,10 @@
     "/portfolio/{projectId}": {
       "schema": "portfolio_project",
       "description": "Portfolio projects with before/after photos"
+    },
+    "/visits/{visitId}": {
+      "schema": "visits",
+      "description": "Tracked user visits"
     }
   }
 }

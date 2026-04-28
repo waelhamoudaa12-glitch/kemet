@@ -34,9 +34,11 @@ import {
   X
 } from 'lucide-react';
 
+import { VisitorsDashboard } from './components/VisitorsDashboard';
+
 // --- Types ---
 
-type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'portfolio' | 'mydesign';
+type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'portfolio' | 'mydesign' | 'visitors';
 
 const SPRING_TRANSITION = { type: 'spring', stiffness: 300, damping: 30 };
 
@@ -177,6 +179,7 @@ export default function App() {
     { id: 'home', label: 'الرئيسية' },
     { id: 'portfolio', label: 'من تصميمنا' },
     { id: 'about', label: 'عنا' },
+    { id: 'visitors', label: 'الزوار' },
     { id: 'contact', label: 'اتصل بنا' },
   ];
 
@@ -228,7 +231,7 @@ export default function App() {
                             key={item.id}
                             onClick={() => {
                                 setIsMobileMenuOpen(false);
-                                if (item.id === 'home' || item.id === 'about' || item.id === 'portfolio') {
+                                if (item.id === 'home' || item.id === 'about' || item.id === 'portfolio' || item.id === 'visitors') {
                                     setCurrentPage(item.id as AppState);
                                 } else if (item.id === 'contact') {
                                     window.open('https://wa.me/201554853093', '_blank');
@@ -1089,6 +1092,12 @@ export default function App() {
                    </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {currentPage === 'visitors' && (
+            <div key="visitors">
+              <VisitorsDashboard />
             </div>
           )}
         </AnimatePresence>
