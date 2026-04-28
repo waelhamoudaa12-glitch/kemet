@@ -40,7 +40,7 @@ export function VisitorsDashboard() {
 
   const countryData = Object.entries(countryCount).map(([name, value]) => ({ name, value }));
 
-  const COLORS = ['#D4AF37', '#9CA3AF', '#4B5563', '#1F2937', '#111827'];
+  const COLORS = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#D4AF37', '#EC4899', '#14B8A6'];
 
   return (
     <div className="min-h-dvh py-24 px-8 lg:px-24 max-w-7xl mx-auto text-white">
@@ -72,7 +72,7 @@ export function VisitorsDashboard() {
                <MapPin className="text-gold-500" />
                الزيارات حسب الدولة
             </h3>
-            <div className="h-80">
+            <div className="h-64 mb-6">
               <ResponsiveContainer width="100%" height="100%">
                  <PieChart>
                     <Pie
@@ -82,7 +82,7 @@ export function VisitorsDashboard() {
                        outerRadius={80}
                        fill="#D4AF37"
                        dataKey="value"
-                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                       stroke="none"
                     >
                        {countryData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -91,6 +91,20 @@ export function VisitorsDashboard() {
                     <Tooltip />
                  </PieChart>
               </ResponsiveContainer>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4">
+              {countryData.map((entry, index) => {
+                 const mappedValue = isNaN(totalVisits) || totalVisits === 0 ? 0 : (entry.value / totalVisits);
+                 return (
+                 <div key={`legend-${index}`} className="flex items-center gap-2 bg-egypt-black px-3 py-1.5 rounded-full border border-gold-500/10">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                    <span className="text-sm text-gray-300 font-bold" dir="ltr">{entry.name}</span>
+                    <span className="text-sm font-black text-white ml-2 bg-gold-500/20 px-2 py-0.5 rounded-md">
+                      {(mappedValue * 100).toFixed(0)}%
+                    </span>
+                 </div>
+                 );
+              })}
             </div>
          </div>
 
