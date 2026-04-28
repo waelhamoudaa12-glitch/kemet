@@ -51,20 +51,13 @@ const ICON_MAP: Record<string, any> = {
 };
 
 const SmoothImage = ({ src, alt, className, referrerPolicy }: { src: string; alt: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }) => {
-    const [isLoaded, setIsLoaded] = useState(false);
     return (
         <div className={`relative overflow-hidden ${className}`}>
-            {!isLoaded && (
-                <div role="presentation" className="absolute inset-0 bg-gold-500/5 animate-pulse z-10" />
-            )}
             <img
                 src={src}
                 alt={alt}
-                loading="lazy"
-                onLoad={() => setIsLoaded(true)}
-                className={`w-full h-full object-cover transition-opacity duration-300 ease-in-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`w-full h-full object-cover`}
                 referrerPolicy={referrerPolicy}
-                loading="lazy"
             />
         </div>
     );
@@ -646,11 +639,8 @@ export default function App() {
 
 
           {currentPage === 'styles' && (
-            <motion.div 
+            <div 
               key="styles"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
               className="max-w-7xl mx-auto px-6 py-12 lg:py-24"
             >
               <div className="mb-12 lg:mb-20">
@@ -699,15 +689,12 @@ export default function App() {
                     </div>
                   ))}
               </div>
-            </motion.div>
+            </div>
           )}
 
           {currentPage === 'configurator' && (
-            <motion.div 
+            <div 
               key="configurator"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               className="flex flex-col h-dvh overflow-hidden"
             >
               {/* Top Navigation for Mobile/Tablet */}
@@ -798,11 +785,8 @@ export default function App() {
 
                 {/* Main Configurator Area */}
                 <div className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-20 bg-egypt-black pharaonic-pattern">
-                  <motion.div
+                  <div
                     key={currentCategoryIndex}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
                     className="max-w-5xl mx-auto text-right"
                   >
                     <header className="mb-12 lg:mb-16">
@@ -901,18 +885,15 @@ export default function App() {
                         <ChevronLeft className="w-6 h-6 group-hover:-translate-x-2 transition-transform" />
                       </button>
                     </footer>
-                  </motion.div>
+                  </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {currentPage === 'mydesign' && (
-            <motion.div 
+            <div 
               key="mydesign"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
               className="min-h-dvh py-24 px-8 lg:px-24 max-w-7xl mx-auto"
             >
               <div className="mb-16 md:mb-24">
@@ -1023,14 +1004,12 @@ export default function App() {
                    </div>
                  </>
                )}
-             </motion.div>
+             </div>
            )}
 
            {currentPage === 'summary' && (
-            <motion.div 
+            <div 
               key="summary"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
               className="min-h-dvh py-24 px-6 lg:px-20 bg-egypt-black pharaonic-pattern overflow-y-auto"
             >
               <div className="max-w-4xl mx-auto text-right">
@@ -1110,7 +1089,7 @@ export default function App() {
                    </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </main>
