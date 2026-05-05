@@ -452,9 +452,9 @@ export function AdminPanel({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-egypt-dark w-full max-w-2xl rounded-[3rem] border border-gold-500/20 shadow-2xl overflow-hidden"
+              className="bg-egypt-dark w-full max-w-4xl rounded-[3rem] border border-gold-500/20 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             >
-              <div className="p-8 md:p-12">
+              <div className="p-8 md:p-12 overflow-y-auto">
                 <div className="flex justify-between items-center mb-8">
                   <h3 className="text-2xl font-black text-white">{editingStyle ? 'تعديل النمط' : 'إضافة نمط جديد'}</h3>
                   <button onClick={() => { setIsAddingStyle(false); setEditingStyle(null); }} className="text-gold-500/40 hover:text-gold-500"><X /></button>
@@ -467,21 +467,72 @@ export function AdminPanel({
                     name: formData.get('name'),
                     description: formData.get('description'),
                     image: activeStyleImage,
+                    galleryImages: editingStyle?.galleryImages || []
                   });
                 }}>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">اسم النمط</label>
-                    <input name="name" defaultValue={editingStyle?.name} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white text-right" required />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">اسم النمط</label>
+                        <input name="name" defaultValue={editingStyle?.name} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white text-right" required />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">الوصف</label>
+                        <textarea name="description" defaultValue={editingStyle?.description} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white text-right h-32" required />
+                      </div>
+                      <div className="space-y-2 text-right">
+                        <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">صورة النمط الأساسية</label>
+                        <ImageInput value={activeStyleImage} onChange={setActiveStyleImage} required />
+                      </div>
+                    </div>
+
+                    <div className="space-y-6 md:border-l md:border-gold-500/10 md:pl-6">
+                      <div className="flex justify-between items-center">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            const newImages = [...(editingStyle?.galleryImages || []), ''];
+                            setEditingStyle({ ...editingStyle ?? { id: `style_${Date.now()}`, name: '', description: '' }, galleryImages: newImages });
+                          }}
+                          className="text-gold-500 border border-gold-500/20 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-gold-500/5 hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2"
+                        >
+                          <Plus className="w-3 h-3" />
+                          إضافة صورة للمعرض
+                        </button>
+                        <h4 className="text-sm font-black text-white text-right">معرض التصاميم</h4>
+                      </div>
+
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {(editingStyle?.galleryImages || []).map((imgUrl: string, idx: number) => (
+                          <div key={idx} className="bg-egypt-black/50 p-4 rounded-2xl border border-gold-500/10 text-right">
+                            <div className="flex justify-between items-center mb-3">
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  const newImages = editingStyle.galleryImages.filter((_: any, i: number) => i !== idx);
+                                  setEditingStyle({ ...editingStyle, galleryImages: newImages });
+                                }}
+                                className="text-red-500 hover:text-red-400"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                              <span className="text-gold-500 font-bold text-[10px]">صورة {idx + 1}</span>
+                            </div>
+                            <ImageInput 
+                              value={imgUrl} 
+                              onChange={(val) => {
+                                const newImages = [...editingStyle.galleryImages];
+                                newImages[idx] = val;
+                                setEditingStyle({ ...editingStyle, galleryImages: newImages });
+                              }} 
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">الوصف</label>
-                    <textarea name="description" defaultValue={editingStyle?.description} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white text-right h-32" required />
-                  </div>
-                  <div className="space-y-2 text-right">
-                    <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block mb-2">صورة النمط</label>
-                    <ImageInput value={activeStyleImage} onChange={setActiveStyleImage} required />
-                  </div>
-                  <button type="submit" className="w-full bg-gold-500 text-egypt-black py-5 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-glow">
+
+                  <button type="submit" className="w-full bg-gold-500 text-egypt-black py-5 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-glow mt-8">
                     <Save className="w-5 h-5" />
                     حفظ النمط
                   </button>
@@ -629,18 +680,13 @@ export function AdminPanel({
                   handleSaveCategory({
                     id: editingCategory?.id,
                     name: formData.get('name'),
-                    iconName: formData.get('iconName'),
                     options
                   });
                 }}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                     <div className="space-y-2">
                        <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">اسم القسم</label>
                        <input name="name" defaultValue={editingCategory?.name} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white text-right" required />
-                    </div>
-                    <div className="space-y-2">
-                       <label className="text-xs font-black text-gold-500/40 uppercase tracking-widest text-right block">اسم الأيقونة (Lucide Icon Name)</label>
-                       <input name="iconName" defaultValue={editingCategory?.iconName} className="w-full bg-egypt-black border border-gold-500/10 rounded-2xl py-4 px-6 text-white font-mono dir-ltr text-left" required />
                     </div>
                   </div>
 

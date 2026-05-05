@@ -27,6 +27,7 @@ import {
   Utensils, 
   CheckCircle2, 
   ArrowRight,
+  ArrowLeft,
   Maximize2,
   Edit3,
   UserCircle,
@@ -38,7 +39,7 @@ import { VisitorsDashboard } from './components/VisitorsDashboard';
 
 // --- Types ---
 
-type AppState = 'home' | 'styles' | 'configurator' | 'summary' | 'about' | 'portfolio' | 'mydesign' | 'visitors';
+type AppState = 'home' | 'styles' | 'style_preview' | 'configurator' | 'summary' | 'about' | 'portfolio' | 'mydesign' | 'visitors';
 
 const SPRING_TRANSITION = { type: 'spring', stiffness: 300, damping: 30 };
 
@@ -146,7 +147,12 @@ export default function App() {
 
   const handleSelectStyle = (styleId: string) => {
     setSelectedStyle(styleId);
-    const newSelections = { style: styleId };
+    setCurrentPage('style_preview');
+  };
+
+  const handleConfirmStyle = () => {
+    if (!selectedStyle) return;
+    const newSelections = { style: selectedStyle };
     setSelections(newSelections);
     saveSelection(newSelections);
     setCurrentCategoryIndex(0);
@@ -692,6 +698,49 @@ export default function App() {
                     </div>
                   ))}
               </div>
+            </div>
+          )}
+
+          {currentPage === 'style_preview' && selectedStyle && (
+            <div 
+              key="style_preview"
+              className="max-w-7xl mx-auto px-6 py-12 lg:py-24 animate-in fade-in zoom-in duration-500"
+            >
+              {(() => {
+                const style = appStyles.find(s => s.id === selectedStyle);
+                if (!style) return null;
+                const images = [style.image, ...(style.galleryImages || [])].filter(Boolean);
+                return (
+                  <div className="space-y-12">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-12">
+                      <div className="text-right flex-1">
+                        <button onClick={() => setCurrentPage('styles')} className="text-gold-500/60 hover:text-gold-500 flex items-center justify-start gap-2 mb-6 font-bold text-sm transition-colors w-fit">
+                          العودة للأنماط
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                        <h2 className="text-4xl md:text-6xl font-black text-white mb-4">تصاميم <span className="gold-gradient text-gold-500">{style.name}</span></h2>
+                        <p className="text-white/60 text-lg md:text-xl font-medium max-w-2xl ml-auto">{style.description}</p>
+                      </div>
+                      <button 
+                        onClick={handleConfirmStyle}
+                        className="bg-gold-500 text-egypt-black px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-white transition-all shadow-[0_20px_60px_rgba(212,175,55,0.2)] flex items-center justify-center gap-4 group shrink-0 w-full md:w-auto"
+                      >
+                        اختر تصميمك الآن
+                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-2 transition-transform" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {images.map((img: string, i: number) => (
+                        <div key={i} className={`rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl relative group ${i === 0 ? 'md:col-span-2 lg:col-span-2 aspect-video' : 'aspect-square'}`}>
+                           <SmoothImage src={img} alt={`${style.name} ${i}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" referrerPolicy="no-referrer" />
+                           <div className="absolute inset-0 bg-egypt-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
