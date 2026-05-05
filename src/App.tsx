@@ -76,6 +76,25 @@ interface Selection {
 export default function App() {
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<AppState>('home');
+  const [pageHistory, setPageHistory] = useState<AppState[]>([]);
+
+  const navigateTo = (page: AppState) => {
+    if (page === currentPage) return;
+    setPageHistory(prev => [...prev, currentPage]);
+    setCurrentPage(page);
+  };
+
+  const goBack = () => {
+    setPageHistory(prev => {
+      const newHistory = [...prev];
+      const previousPage = newHistory.pop();
+      if (previousPage) {
+        setCurrentPage(previousPage);
+      }
+      return newHistory;
+    });
+  };
+
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [selections, setSelections] = useState<Record<string, string | string[]>>({});
@@ -125,7 +144,7 @@ export default function App() {
   }, [currentPage, heroImages.length]);
 
   const handleStart = () => {
-    setCurrentPage('styles');
+    navigateTo('styles');
   };
   
   // Save selection to Firestore
@@ -147,7 +166,7 @@ export default function App() {
 
   const handleSelectStyle = (styleId: string) => {
     setSelectedStyle(styleId);
-    setCurrentPage('style_preview');
+    navigateTo('style_preview');
   };
 
   const handleConfirmStyle = () => {
@@ -156,7 +175,7 @@ export default function App() {
     setSelections(newSelections);
     saveSelection(newSelections);
     setCurrentCategoryIndex(0);
-    setCurrentPage('configurator');
+    navigateTo('configurator');
   };
 
   const handleOptionSelect = (catId: string, optionId: string) => {
@@ -175,7 +194,7 @@ export default function App() {
   };
 
   const reset = () => {
-    setCurrentPage('home');
+    navigateTo('home');
     setSelectedStyle(null);
     setCurrentCategoryIndex(0);
     setSelections({});
@@ -197,7 +216,7 @@ export default function App() {
         animate={{ y: 0 }} 
         className="fixed top-0 left-0 right-0 h-20 md:h-24 bg-egypt-dark/80 backdrop-blur-xl border-b border-gold-500/10 z-50 flex items-center justify-between px-4 md:px-12 shadow-2xl"
       >
-        <div className="flex items-center cursor-pointer shrink-0 group" onClick={() => setCurrentPage('home')}>
+        <div className="flex items-center cursor-pointer shrink-0 group" onClick={() => navigateTo('home')}>
            <div className="flex flex-col items-center">
              <img src="/logo.jpg" alt="KEMET Logo" className="h-16 md:h-20 object-contain" onError={(e) => {
                (e.currentTarget as HTMLImageElement).style.display = 'none';
@@ -212,6 +231,16 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end overflow-visible">
+          {pageHistory.length > 0 && (
+            <button 
+              onClick={goBack}
+              className="text-gold-500 hover:text-gold-400 p-2 md:px-4 md:py-2 border border-gold-500/20 rounded-lg md:rounded-full bg-gold-500/5 transition-all flex items-center gap-2"
+            >
+              <ChevronRight className="w-5 h-5 md:w-4 md:h-4" />
+              <span className="hidden md:inline text-sm font-bold uppercase">رجوع</span>
+            </button>
+          )}
+
           {/* Hamburger Menu Button */}
           <div className="relative">
             <button 
@@ -238,7 +267,7 @@ export default function App() {
                             onClick={() => {
                                 setIsMobileMenuOpen(false);
                                 if (item.id === 'home' || item.id === 'about' || item.id === 'portfolio' || item.id === 'visitors') {
-                                    setCurrentPage(item.id as AppState);
+                                    navigateTo(item.id as AppState);
                                 } else if (item.id === 'contact') {
                                     window.open('https://wa.me/201554853093', '_blank');
                                 }
@@ -258,7 +287,7 @@ export default function App() {
 
           <div className="flex items-center gap-1 md:gap-4 shrink-0">
               <button 
-                onClick={() => setCurrentPage('styles')}
+                onClick={() => navigateTo('styles')}
                 className={`bg-gold-500 text-egypt-black px-2 md:px-6 py-1.5 md:py-3 rounded-full hover:bg-gold-600 transition-all shadow-lg active:scale-95 shrink-0 flex items-center gap-2 ${currentPage === 'styles' ? 'ring-4 ring-gold-500/20' : ''}`}
               >
                 <span className="text-[8px] md:text-sm font-black uppercase tracking-tight whitespace-nowrap">ابدأ التصميم</span>
@@ -309,7 +338,7 @@ export default function App() {
                   transition={{ delay: 0.4 }}
                   className="text-base md:text-xl lg:text-2xl text-white mb-12 max-w-md font-medium leading-relaxed"
                 >
-                  نحن هنا لنحول جدران منزلك إلى لوحة فنية ملكية. اختر خاماتك وتفاصيلك بفخامة الفراعنة وعراقة كيميت.
+                  نحن هنا لنحول منزلك الي لوحة فنية من اختيار خاماتك وتفاصيلك بفخامه كيميت حول منزلك من 2D الي 3D
                 </motion.p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
@@ -388,7 +417,7 @@ export default function App() {
                     <p className="text-white/80 font-medium text-lg max-w-xl">اكتشف الفرق الذي نصنعه في كل مساحة. المس السهم لرؤية التحول.</p>
                   </div>
                   <button 
-                    onClick={() => setCurrentPage('portfolio')}
+                    onClick={() => navigateTo('portfolio')}
                     className="text-gold-500 font-black uppercase tracking-widest text-xs border-b-2 border-gold-500/20 pb-2 hover:border-gold-500 transition-all flex items-center gap-2 group"
                   >
                     شاهد المعرض كاملاً
@@ -714,7 +743,7 @@ export default function App() {
                   <div className="space-y-12">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-12">
                       <div className="text-right flex-1">
-                        <button onClick={() => setCurrentPage('styles')} className="text-gold-500/60 hover:text-gold-500 flex items-center justify-start gap-2 mb-6 font-bold text-sm transition-colors w-fit">
+                        <button onClick={() => navigateTo('styles')} className="text-gold-500/60 hover:text-gold-500 flex items-center justify-start gap-2 mb-6 font-bold text-sm transition-colors w-fit">
                           العودة للأنماط
                           <ChevronRight className="w-5 h-5" />
                         </button>
@@ -767,7 +796,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     saveSelection(selections, true);
-                    setCurrentPage('summary');
+                    navigateTo('summary');
                   }}
                   className="px-6 py-2 rounded-full text-xs font-black bg-gold-500 text-egypt-black shadow-lg shadow-gold-500/20 mr-2"
                 >
@@ -814,7 +843,7 @@ export default function App() {
                     <button
                       onClick={() => {
                         saveSelection(selections, true);
-                        setCurrentPage('summary');
+                        navigateTo('summary');
                       }}
                       className="w-full flex items-center gap-4 p-6 rounded-2xl transition-all bg-gold-500 text-egypt-black shadow-[0_10px_30px_rgba(212,175,55,0.3)] hover:scale-105 mt-8 border border-white/20 group"
                     >
@@ -924,7 +953,7 @@ export default function App() {
                             setCurrentCategoryIndex(prev => prev + 1);
                           } else {
                             saveSelection(selections, true);
-                            setCurrentPage('summary');
+                            navigateTo('summary');
                           }
                         }}
                         className="group flex items-center gap-6 bg-gold-500 text-egypt-black px-10 py-5 rounded-2xl font-black transition-all shadow-xl hover:bg-white"
@@ -962,7 +991,7 @@ export default function App() {
                    <h3 className="text-3xl font-black mb-4 text-white">لا توجد اختيارات بعد</h3>
                    <p className="text-white/60 mb-8 max-w-sm mx-auto">ابدأ رحلة تصميم منزلك الآن واختر أفضل الخامات والموديلات.</p>
                    <button 
-                    onClick={() => setCurrentPage('styles')}
+                    onClick={() => navigateTo('styles')}
                     className="bg-gold-500 text-egypt-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-gold-600 transition-all shadow-xl shadow-gold-500/20"
                    >
                      ابدأ التصميم الآن
@@ -991,7 +1020,7 @@ export default function App() {
                              <button 
                                 onClick={() => {
                                   setCurrentCategoryIndex(idx);
-                                  setCurrentPage('configurator');
+                                  navigateTo('configurator');
                                 }}
                                 className="w-10 h-10 rounded-full border border-gold-500/10 flex items-center justify-center text-gold-500 hover:bg-gold-500 hover:text-egypt-black transition-all"
                              >
@@ -1047,7 +1076,7 @@ export default function App() {
                          WhatsApp
                        </button>
                        <button 
-                          onClick={() => setCurrentPage('styles')}
+                          onClick={() => navigateTo('styles')}
                           className="bg-egypt-black text-gold-500 border border-gold-500/30 px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gold-500/5 transition-all"
                        >
                          New Design
@@ -1133,7 +1162,7 @@ export default function App() {
                         <ArrowRight className="w-6 h-6" />
                      </button>
                      <button 
-                        onClick={() => setCurrentCategoryIndex(0) || setCurrentPage('configurator')}
+                        onClick={() => { setCurrentCategoryIndex(0); navigateTo('configurator'); }}
                         className="bg-white/20 backdrop-blur-md text-egypt-black border-2 border-egypt-black/20 px-16 py-6 rounded-2xl font-black text-xl hover:bg-white/30 transition-all"
                      >
                         تعديل الاختيارات
