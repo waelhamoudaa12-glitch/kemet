@@ -700,17 +700,17 @@ export default function App() {
                     <div
                       key={style.id}
                       onClick={() => handleSelectStyle(style.id)}
-                      className="cursor-pointer group flex flex-row items-stretch bg-egypt-dark border border-gold-500/10 rounded-[2.5rem] overflow-hidden hover:border-gold-500/40 transition-all duration-300 shadow-2xl"
+                      className="cursor-pointer group flex flex-row items-stretch bg-egypt-dark border border-gold-500/10 rounded-[2.5rem] overflow-hidden hover:border-gold-500/40 transition-all duration-500 shadow-2xl hover:shadow-[0_20px_60px_rgba(212,175,55,0.15)] hover:-translate-y-2"
                     >
                       <div className="w-2/5 shrink-0 overflow-hidden relative">
                         <SmoothImage 
                           src={style.image} 
                           alt={style.name}
-                          className="w-full h-full"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                           referrerPolicy="no-referrer"
                         />
                         <div className="absolute inset-0 bg-gold-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center p-4">
-                          <div className="bg-gold-500 text-egypt-black p-4 rounded-full shadow-2xl">
+                          <div className="bg-gold-500 text-egypt-black p-4 rounded-full shadow-2xl scale-50 group-hover:scale-100 transition-transform duration-500 delay-100">
                             <ArrowRight className="w-6 h-6 -rotate-45" />
                           </div>
                         </div>
