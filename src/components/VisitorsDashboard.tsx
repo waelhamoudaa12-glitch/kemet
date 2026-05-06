@@ -94,7 +94,7 @@ export function VisitorsDashboard() {
             </div>
             <div className="flex flex-wrap justify-center gap-4">
               {countryData.map((entry, index) => {
-                 const mappedValue = isNaN(totalVisits) || totalVisits === 0 ? 0 : (entry.value / totalVisits);
+                 const mappedValue = isNaN(totalVisits) || totalVisits === 0 ? 0 : ((entry.value as number) / totalVisits);
                  return (
                  <div key={`legend-${index}`} className="flex items-center gap-2 bg-egypt-black px-3 py-1.5 rounded-full border border-gold-500/10">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>

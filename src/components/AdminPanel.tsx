@@ -234,14 +234,14 @@ export function AdminPanel({
   };
 
   return (
-    <div className="fixed inset-0 z-[150] bg-egypt-black flex flex-col font-sans">
-      <header className="p-4 md:p-8 border-b border-gold-500/10 flex justify-between items-center bg-egypt-dark sticky top-0 z-10 shadow-xl">
+    <div className="fixed inset-0 z-[150] bg-egypt-black overflow-y-auto font-sans flex flex-col">
+      <header className="p-4 md:p-8 border-b border-gold-500/10 flex justify-between items-center bg-egypt-dark sticky top-0 z-20 shadow-xl shrink-0">
         <div className="flex items-center gap-4 md:gap-6">
           <div className="bg-gold-500 p-2 md:p-3 rounded-2xl shadow-glow">
             <ShieldCheck className="w-6 h-6 md:w-8 md:h-8 text-egypt-black" />
           </div>
           <div className="text-right">
-            <h1 className="text-xl md:text-3xl font-black tracking-tighter text-white">لوحة التعديل والتحكم الملكية</h1>
+            <h1 className="text-xl md:text-3xl font-black tracking-tighter text-white">لوحة التعديل</h1>
           </div>
         </div>
 
@@ -255,7 +255,7 @@ export function AdminPanel({
         </div>
       </header>
 
-      <div className="bg-egypt-dark border-b border-gold-500/10 flex px-4 md:px-16 gap-6 md:gap-12">
+      <div className="bg-egypt-dark border-b border-gold-500/10 flex px-4 md:px-16 gap-6 md:gap-12 shrink-0">
           <button 
             onClick={() => setActiveTab('content')}
             className={`py-4 md:py-6 text-xs md:text-sm font-black uppercase tracking-widest transition-all border-b-2 ${
@@ -274,7 +274,7 @@ export function AdminPanel({
           </button>
       </div>
 
-      <main className="flex-1 overflow-y-auto p-4 md:p-16 bg-egypt-black pharaonic-pattern">
+      <main className="flex-1 p-4 md:p-16 bg-egypt-black pharaonic-pattern">
           <div className="max-w-6xl mx-auto space-y-16">
             {activeTab === 'content' ? (
               <>

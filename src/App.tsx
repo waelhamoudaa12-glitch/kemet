@@ -1101,7 +1101,7 @@ export default function App() {
            {currentPage === 'summary' && (
             <div 
               key="summary"
-              className="min-h-dvh py-24 px-6 lg:px-20 bg-egypt-black pharaonic-pattern overflow-y-auto"
+              className="py-12 md:py-24 px-6 lg:px-20 bg-egypt-black pharaonic-pattern"
             >
               <div className="max-w-4xl mx-auto text-right">
                 <div className="mb-20">
