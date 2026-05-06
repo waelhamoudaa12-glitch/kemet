@@ -350,7 +350,8 @@ export default function App() {
                   transition={{ delay: 0.4 }}
                   className="text-base md:text-xl lg:text-2xl text-white mb-12 max-w-md font-medium leading-relaxed"
                 >
-                  نحن هنا لنحول منزلك الي لوحة فنية من اختيار خاماتك وتفاصيلك بفخامه كيميت حول منزلك من 2D الي 3D
+                  نحن هنا لنحول منزلك الي لوحة فنية من اختيار خاماتك وتفاصيلك بفخامه كيميت
+                  <span className="block mt-4 text-gold-500 font-black tracking-widest">(حول منزلك من 2D الي 3D)</span>
                 </motion.p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
