@@ -260,7 +260,7 @@ export function AdminPanel({
           <button 
             onClick={() => setActiveTab('content')}
             className={`py-4 md:py-6 text-xs md:text-sm font-black uppercase tracking-widest transition-all border-b-2 ${
-               activeTab === 'content' ? 'text-gold-500 border-gold-500' : 'text-gold-500/40 border-transparent hover:text-gold-500'
+               activeTab === 'content' ? 'text-gold-500 border-gold-500' : 'text-white border-transparent hover:text-gold-500'
             }`}
           >
              المحتوى الأساسي
@@ -268,7 +268,7 @@ export function AdminPanel({
           <button 
             onClick={() => setActiveTab('portfolio')}
             className={`py-4 md:py-6 text-xs md:text-sm font-black uppercase tracking-widest transition-all border-b-2 ${
-               activeTab === 'portfolio' ? 'text-gold-500 border-gold-500' : 'text-gold-500/40 border-transparent hover:text-gold-500'
+               activeTab === 'portfolio' ? 'text-gold-500 border-gold-500' : 'text-white border-transparent hover:text-gold-500'
             }`}
           >
              أعمالنا (Portfolio)

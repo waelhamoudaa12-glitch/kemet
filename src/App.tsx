@@ -799,7 +799,7 @@ export default function App() {
                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                       currentCategoryIndex === idx 
                         ? 'bg-gold-500 text-egypt-black shadow-lg shadow-gold-500/20' 
-                        : 'bg-egypt-black text-gold-500/60 border border-gold-500/10'
+                        : 'bg-egypt-black text-white hover:text-gold-500 border border-gold-500/10'
                     }`}
                   >
                     {cat.name}
@@ -831,11 +831,11 @@ export default function App() {
                       className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${
                         currentCategoryIndex === idx 
                           ? 'bg-gold-500/10 border border-gold-500/20 text-gold-500 font-black shadow-inner shadow-gold-500/5' 
-                          : 'text-gold-200/30 hover:text-gold-500 hover:bg-gold-500/5'
+                          : 'text-white hover:text-gold-500 hover:bg-gold-500/5'
                       }`}
                     >
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                        currentCategoryIndex === idx ? 'bg-gold-500 text-egypt-black shadow-glow' : 'bg-egypt-black text-gold-500/40'
+                        currentCategoryIndex === idx ? 'bg-gold-500 text-egypt-black shadow-glow' : 'bg-egypt-black text-white'
                       }`}>
                         <cat.icon className="w-5 h-5" />
                       </div>
