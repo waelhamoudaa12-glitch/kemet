@@ -142,6 +142,13 @@ export function AdminPanel({
   const [activeProjectBefore, setActiveProjectBefore] = useState('');
   const [activeProjectAfter, setActiveProjectAfter] = useState('');
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   // Content management state
   const handleFirestoreError = (error: any, operation: string, path: string) => {
     const errInfo = {
@@ -234,7 +241,8 @@ export function AdminPanel({
   };
 
   return (
-    <div className="fixed inset-0 z-[150] bg-egypt-black overflow-y-auto font-sans flex flex-col">
+    <div dir="ltr" className="fixed inset-0 z-[150] bg-egypt-black overflow-y-auto font-sans">
+      <div dir="rtl" className="min-h-full flex flex-col">
       <header className="p-4 md:p-8 border-b border-gold-500/10 flex justify-between items-center bg-egypt-dark sticky top-0 z-20 shadow-xl shrink-0">
         <div className="flex items-center gap-4 md:gap-6">
           <div className="bg-gold-500 p-2 md:p-3 rounded-2xl shadow-glow">
@@ -762,6 +770,7 @@ export function AdminPanel({
           </div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }
