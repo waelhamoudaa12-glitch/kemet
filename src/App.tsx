@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Lenis from 'lenis';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './lib/firebase';
@@ -105,6 +106,15 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeProjectHover, setActiveProjectHover] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      autoRaf: true,
+    });
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
 
   useEffect(() => {
     syncInitialData();
@@ -776,18 +786,18 @@ export default function App() {
           {currentPage === 'configurator' && (
             <div 
               key="configurator"
-              className="flex flex-col h-dvh overflow-hidden"
+              className="flex flex-col h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] overflow-hidden"
             >
               {/* Top Navigation for Mobile/Tablet */}
-              <div className="lg:hidden bg-white border-b border-gray-100 px-6 py-4 flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
+              <div className="lg:hidden bg-egypt-dark border-b border-gold-500/10 px-6 py-4 flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide shadow-lg z-10 relative">
                 {appCategories.map((cat, idx) => (
                   <button
                     key={cat.id}
                     onClick={() => setCurrentCategoryIndex(idx)}
                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                       currentCategoryIndex === idx 
-                        ? 'bg-black text-white shadow-lg' 
-                        : 'bg-gray-50 text-gray-400'
+                        ? 'bg-gold-500 text-egypt-black shadow-lg shadow-gold-500/20' 
+                        : 'bg-egypt-black text-gold-500/60 border border-gold-500/10'
                     }`}
                   >
                     {cat.name}
@@ -865,7 +875,7 @@ export default function App() {
                 </div>
 
                 {/* Main Configurator Area */}
-                <div className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-20 bg-egypt-black pharaonic-pattern">
+                <div data-lenis-prevent className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-20 bg-egypt-black pharaonic-pattern">
                   <div
                     key={currentCategoryIndex}
                     className="max-w-5xl mx-auto text-right"
