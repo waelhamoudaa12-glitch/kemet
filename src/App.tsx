@@ -786,10 +786,10 @@ export default function App() {
           {currentPage === 'configurator' && (
             <div 
               key="configurator"
-              className="flex flex-col h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] overflow-hidden"
+              className="flex flex-col lg:flex-row min-h-screen"
             >
               {/* Top Navigation for Mobile/Tablet */}
-              <div className="lg:hidden bg-egypt-dark border-b border-gold-500/10 px-6 py-4 flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide shadow-lg z-10 relative">
+              <div className="lg:hidden bg-egypt-dark border-b border-gold-500/10 px-6 py-4 flex gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide shadow-lg z-10 sticky top-20 md:top-24">
                 {appCategories.map((cat, idx) => (
                   <button
                     key={cat.id}
@@ -814,68 +814,69 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="flex flex-1 overflow-hidden">
-                {/* Desktop Category Sidebar */}
-                  <div className="hidden lg:flex w-80 bg-egypt-dark border-l border-gold-500/10 p-10 flex-col gap-8 overflow-y-auto">
-                  <div className="mb-10">
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-500 block mb-3">النمط المختار</span>
-                    <h3 className="text-2xl font-black text-white">{appStyles.find(s => s.id === selectedStyle)?.name}</h3>
-                  </div>
-                  
-                  <nav className="space-y-4">
-                    {appCategories.map((cat, idx) => (
-                      <button
-                        key={cat.id}
-                        onClick={() => setCurrentCategoryIndex(idx)}
-                        className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                          currentCategoryIndex === idx 
-                            ? 'bg-gold-500/10 border border-gold-500/20 text-gold-500 font-black shadow-inner shadow-gold-500/5' 
-                            : 'text-gold-200/30 hover:text-gold-500 hover:bg-gold-500/5'
-                        }`}
-                      >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                          currentCategoryIndex === idx ? 'bg-gold-500 text-egypt-black shadow-glow' : 'bg-egypt-black text-gold-500/40'
-                        }`}>
-                          <cat.icon className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1 text-right">
-                          <p className="text-[10px] uppercase tracking-widest font-black mb-0.5 opacity-40">القسم {idx + 1}</p>
-                          <p className="text-sm font-bold">{cat.name}</p>
-                        </div>
-                        {Array.isArray(selections[cat.id]) && (selections[cat.id] as string[]).length > 0 && (
-                          <div className="bg-gold-500 text-egypt-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black">
-                            {(selections[cat.id] as string[]).length}
-                          </div>
-                        )}
-                      </button>
-                    ))}
-
+              {/* Desktop Category Sidebar */}
+              <div className="hidden lg:flex w-80 shrink-0 bg-egypt-dark border-l border-gold-500/10 p-10 flex-col gap-8">
+                <div className="mb-10">
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-500 block mb-3">النمط المختار</span>
+                  <h3 className="text-2xl font-black text-white">{appStyles.find(s => s.id === selectedStyle)?.name}</h3>
+                </div>
+                
+                <nav className="space-y-4">
+                  {appCategories.map((cat, idx) => (
                     <button
-                      onClick={() => {
-                        saveSelection(selections, true);
-                        navigateTo('summary');
-                      }}
-                      className="w-full flex items-center gap-4 p-6 rounded-2xl transition-all bg-gold-500 text-egypt-black shadow-[0_10px_30px_rgba(212,175,55,0.3)] hover:scale-105 mt-8 border border-white/20 group"
+                      key={cat.id}
+                      onClick={() => setCurrentCategoryIndex(idx)}
+                      className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                        currentCategoryIndex === idx 
+                          ? 'bg-gold-500/10 border border-gold-500/20 text-gold-500 font-black shadow-inner shadow-gold-500/5' 
+                          : 'text-gold-200/30 hover:text-gold-500 hover:bg-gold-500/5'
+                      }`}
                     >
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-egypt-black text-gold-500 group-hover:rotate-12 transition-transform shadow-lg">
-                          <Palette className="w-6 h-6" />
-                        </div>
-                      <div className="flex-1 text-right">
-                        <p className="text-[10px] uppercase tracking-widest font-black text-egypt-black/60 mb-0.5">الخطوة النهائية</p>
-                        <p className="text-lg font-black tracking-tight">لقد انتهيت</p>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                        currentCategoryIndex === idx ? 'bg-gold-500 text-egypt-black shadow-glow' : 'bg-egypt-black text-gold-500/40'
+                      }`}>
+                        <cat.icon className="w-5 h-5" />
                       </div>
+                      <div className="flex-1 text-right">
+                        <p className="text-[10px] uppercase tracking-widest font-black mb-0.5 opacity-40">القسم {idx + 1}</p>
+                        <p className="text-sm font-bold">{cat.name}</p>
+                      </div>
+                      {Array.isArray(selections[cat.id]) && (selections[cat.id] as string[]).length > 0 && (
+                        <div className="bg-gold-500 text-egypt-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black">
+                          {(selections[cat.id] as string[]).length}
+                        </div>
+                      )}
                     </button>
-                  </nav>
+                  ))}
 
-                  <div className="mt-auto p-6 bg-gold-500/5 rounded-3xl border border-gold-500/10">
+                  <button
+                    onClick={() => {
+                      saveSelection(selections, true);
+                      navigateTo('summary');
+                    }}
+                    className="w-full flex items-center gap-4 p-6 rounded-2xl transition-all bg-gold-500 text-egypt-black shadow-[0_10px_30px_rgba(212,175,55,0.3)] hover:scale-105 mt-8 border border-white/20 group"
+                  >
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-egypt-black text-gold-500 group-hover:rotate-12 transition-transform shadow-lg">
+                        <Palette className="w-6 h-6" />
+                      </div>
+                    <div className="flex-1 text-right">
+                      <p className="text-[10px] uppercase tracking-widest font-black text-egypt-black/60 mb-0.5">الخطوة النهائية</p>
+                      <p className="text-lg font-black tracking-tight">لقد انتهيت</p>
+                    </div>
+                  </button>
+                </nav>
+
+                <div className="mt-auto pt-8">
+                  <div className="p-6 bg-gold-500/5 rounded-3xl border border-gold-500/10">
                     <p className="text-gold-500 text-[10px] font-black leading-relaxed uppercase tracking-widest">
                        نحن نوفر أفضل الخامات والضمانات الملكية لكل اختيار تقوم به.
                     </p>
                   </div>
                 </div>
+              </div>
 
-                {/* Main Configurator Area */}
-                <div data-lenis-prevent className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-20 bg-egypt-black pharaonic-pattern">
+              {/* Main Configurator Area */}
+              <div className="flex-1 p-6 md:p-12 lg:p-20 bg-egypt-black pharaonic-pattern">
                   <div
                     key={currentCategoryIndex}
                     className="max-w-5xl mx-auto text-right"
@@ -978,7 +979,6 @@ export default function App() {
                     </footer>
                   </div>
                 </div>
-              </div>
             </div>
           )}
 
