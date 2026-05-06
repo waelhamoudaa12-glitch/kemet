@@ -220,6 +220,8 @@ export default function App() {
 
   return (
     <div className="min-h-dvh bg-egypt-black font-sans text-gold-100 flex flex-col">
+      {!isEditPanelOpen ? (
+        <>
       {/* Top Navigation Header */}
       <motion.header 
         initial={{ y: -100 }} 
@@ -1190,9 +1192,8 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
-
-
-      {isEditPanelOpen && (
+      </>
+      ) : (
         <AdminPanel 
           onClose={() => setIsEditPanelOpen(false)} 
           appStyles={appStyles}
