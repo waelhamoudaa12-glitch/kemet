@@ -797,7 +797,7 @@ export default function App() {
                   <button
                     key={cat.id}
                     onClick={() => setCurrentCategoryIndex(idx)}
-                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all outline-none focus:outline-none ${
                       currentCategoryIndex === idx 
                         ? 'bg-gold-500 text-egypt-black shadow-lg shadow-gold-500/20' 
                         : 'bg-egypt-black text-white hover:text-gold-500 border border-gold-500/10'
@@ -829,7 +829,7 @@ export default function App() {
                     <button
                       key={cat.id}
                       onClick={() => setCurrentCategoryIndex(idx)}
-                      className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                      className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all outline-none focus:outline-none ${
                         currentCategoryIndex === idx 
                           ? 'bg-gold-500/10 border border-gold-500/20 text-gold-500 font-black shadow-inner shadow-gold-500/5' 
                           : 'text-white hover:text-gold-500 hover:bg-gold-500/5'
@@ -909,7 +909,7 @@ export default function App() {
                           <button
                            key={option.id}
                            onClick={() => handleOptionSelect(appCategories[currentCategoryIndex].id, option.id)}
-                           className={`group relative text-right flex flex-col items-stretch rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-200 border-2 active:scale-95 will-change-transform ${
+                           className={`group relative text-right flex flex-col items-stretch rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-200 border-2 active:scale-95 will-change-transform outline-none focus:outline-none ${
                              isSelected
                                ? 'border-gold-500 bg-gold-500/10 scale-[1.02]' 
                                : 'border-gold-500/5 bg-egypt-dark hover:border-gold-500/20'
