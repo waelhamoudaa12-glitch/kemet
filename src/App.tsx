@@ -111,8 +111,12 @@ export default function App() {
     const lenis = new Lenis({
       autoRaf: true,
     });
+    // @ts-ignore
+    window.lenis = lenis;
     return () => {
       lenis.destroy();
+      // @ts-ignore
+      delete window.lenis;
     };
   }, []);
 
@@ -142,6 +146,26 @@ export default function App() {
     "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=1200",
     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200"
   ];
+
+  useEffect(() => {
+    if (selectedProject) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      // @ts-ignore
+      if (window.lenis) window.lenis.stop();
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      // @ts-ignore
+      if (window.lenis) window.lenis.start();
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      // @ts-ignore
+      if (window.lenis) window.lenis.start();
+    };
+  }, [selectedProject]);
 
   useEffect(() => {
     if (currentPage !== 'home') return;
