@@ -552,9 +552,9 @@ export function AdminPanel({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-egypt-dark w-full max-w-2xl rounded-[3rem] border border-gold-500/20 shadow-2xl overflow-hidden"
+              className="bg-egypt-dark w-full max-w-2xl max-h-[90vh] rounded-[3rem] border border-gold-500/20 shadow-2xl overflow-hidden flex flex-col"
             >
-              <div className="p-8 md:p-12">
+              <div className="p-8 md:p-12 overflow-y-auto">
                 <div className="flex justify-between items-center mb-8">
                   <h3 className="text-2xl font-black text-white">{editingProject ? 'تعديل المشروع' : 'إضافة مشروع جديد'}</h3>
                   <button onClick={() => { setIsAddingProject(false); setEditingProject(null); }} className="text-gold-500/40 hover:text-gold-500"><X /></button>
