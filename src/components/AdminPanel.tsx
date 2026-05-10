@@ -4,7 +4,7 @@ import { db } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Trash2, User, Phone, Calendar, ShieldCheck, X, Loader2, Sparkles, 
-  Search, ChevronLeft, ArrowRight, CheckCircle2, Palette, Plus, Settings, 
+  Search, ChevronLeft, ArrowRight, ArrowUp, ArrowDown, CheckCircle2, Palette, Plus, Settings, 
   Image as ImageIcon, Edit, Save, List, Home
 } from 'lucide-react';
 import { Category, Option } from '../types';
@@ -184,6 +184,28 @@ export function AdminPanel({
     }
   };
 
+  const handleMoveItem = async (collectionName: string, items: any[], index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === items.length - 1) return;
+
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    const newItems = [...items];
+    const temp = newItems[index];
+    newItems[index] = newItems[newIndex];
+    newItems[newIndex] = temp;
+
+    try {
+      const batch = writeBatch(db);
+      newItems.forEach((item, idx) => {
+         const ref = doc(db, collectionName, item.id);
+         batch.update(ref, { order: idx });
+      });
+      await batch.commit();
+    } catch (error: any) {
+      alert(handleFirestoreError(error, 'update', `${collectionName}/order`));
+    }
+  };
+
   const handleSaveStyle = async (styleData: any) => {
     try {
       const id = styleData.id || `style_${Date.now()}`;
@@ -299,7 +321,7 @@ export function AdminPanel({
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                     {appStyles.map(style => (
+                     {appStyles.map((style, index) => (
                         <div key={style.id} className="bg-egypt-dark rounded-[2rem] overflow-hidden border border-gold-500/10 group">
                            <div className="h-48 relative overflow-hidden">
                               <img src={style.image} alt={style.name} className="w-full h-full object-cover transition-transform group-hover:scale-105"  referrerPolicy="no-referrer"/>
@@ -308,6 +330,22 @@ export function AdminPanel({
                               <h4 className="text-xl font-black text-white mb-2">{style.name}</h4>
                               <p className="text-gold-200/40 text-xs font-medium mb-6 line-clamp-2">{style.description}</p>
                               <div className="flex gap-2">
+                                 <button 
+                                   onClick={() => handleMoveItem('app_styles', appStyles, index, 'up')} 
+                                   disabled={index === 0}
+                                   title="تحريك لأعلى"
+                                   className="w-10 bg-gold-500/5 text-white/60 py-3 rounded-xl hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none"
+                                 >
+                                    <ArrowUp className="w-4 h-4" />
+                                 </button>
+                                 <button 
+                                   onClick={() => handleMoveItem('app_styles', appStyles, index, 'down')} 
+                                   disabled={index === appStyles.length - 1}
+                                   title="تحريك لأسفل"
+                                   className="w-10 bg-gold-500/5 text-white/60 py-3 rounded-xl hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none"
+                                 >
+                                    <ArrowDown className="w-4 h-4" />
+                                 </button>
                                  <button 
                                    onClick={() => {
                                      setEditingStyle(style);
@@ -348,7 +386,7 @@ export function AdminPanel({
                   </div>
 
                   <div className="space-y-6">
-                     {appCategories.map(cat => (
+                     {appCategories.map((cat, index) => (
                         <div key={cat.id} className="bg-egypt-dark rounded-[2.5rem] p-8 border border-gold-500/10 flex flex-col md:flex-row gap-8 items-center text-right">
                            <div className="w-16 h-16 bg-gold-500 flex items-center justify-center rounded-2xl shrink-0 shadow-lg">
                               {(() => {
@@ -361,9 +399,28 @@ export function AdminPanel({
                               <p className="text-gold-500/40 text-[10px] font-black uppercase tracking-widest">{cat.options?.length || 0} خيارات متاحة</p>
                            </div>
                            <div className="flex gap-4">
+                              <div className="flex bg-egypt-black rounded-xl overflow-hidden border border-gold-500/10 h-10">
+                                 <button 
+                                   onClick={() => handleMoveItem('app_categories', appCategories, index, 'down')} 
+                                   disabled={index === appCategories.length - 1}
+                                   title="تحريك لأسفل"
+                                   className="w-10 text-white/50 hover:bg-gold-500/20 hover:text-gold-500 flex items-center justify-center transition-all disabled:opacity-30 disabled:pointer-events-none"
+                                 >
+                                    <ArrowDown className="w-4 h-4" />
+                                 </button>
+                                 <div className="w-px bg-gold-500/10 h-full" />
+                                 <button 
+                                   onClick={() => handleMoveItem('app_categories', appCategories, index, 'up')} 
+                                   disabled={index === 0}
+                                   title="تحريك لأعلى"
+                                   className="w-10 text-white/50 hover:bg-gold-500/20 hover:text-gold-500 flex items-center justify-center transition-all disabled:opacity-30 disabled:pointer-events-none"
+                                 >
+                                    <ArrowUp className="w-4 h-4" />
+                                 </button>
+                              </div>
                               <button 
                                  onClick={() => setEditingCategory(cat)}
-                                 className="bg-gold-500/10 text-gold-500 border border-gold-500/20 px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2"
+                                 className="bg-gold-500/10 text-gold-500 border border-gold-500/20 px-6 py-2 h-10 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2"
                               >
                                  <Edit className="w-4 h-4" />
                                  تعديل الخيارات
@@ -402,7 +459,7 @@ export function AdminPanel({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   {appPortfolio.map(project => (
+                   {appPortfolio.map((project, index) => (
                       <div key={project.id} className="bg-egypt-dark rounded-[2.5rem] overflow-hidden border border-gold-500/10 flex flex-col">
                          <div className="grid grid-cols-2 h-48">
                             <div className="relative overflow-hidden border-r border-gold-500/10">
@@ -418,6 +475,22 @@ export function AdminPanel({
                             <h4 className="text-2xl font-black text-white mb-2">{project.title}</h4>
                             <p className="text-gold-200/40 text-xs font-medium mb-6 line-clamp-2 flex-1">{project.description}</p>
                             <div className="flex gap-2">
+                               <button 
+                                 onClick={() => handleMoveItem('portfolio', appPortfolio, index, 'up')} 
+                                 disabled={index === 0}
+                                 title="تحريك لأعلى"
+                                 className="w-10 bg-gold-500/5 text-white/60 py-3 rounded-xl hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none"
+                               >
+                                  <ArrowUp className="w-4 h-4" />
+                               </button>
+                               <button 
+                                 onClick={() => handleMoveItem('portfolio', appPortfolio, index, 'down')} 
+                                 disabled={index === appPortfolio.length - 1}
+                                 title="تحريك لأسفل"
+                                 className="w-10 bg-gold-500/5 text-white/60 py-3 rounded-xl hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none"
+                               >
+                                  <ArrowDown className="w-4 h-4" />
+                               </button>
                                <button 
                                  onClick={() => {
                                    setEditingProject(project);
@@ -455,7 +528,7 @@ export function AdminPanel({
               exit={{ opacity: 0, scale: 0.9 }}
               className="bg-egypt-dark w-full max-w-4xl rounded-[3rem] border border-gold-500/20 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             >
-              <div className="p-8 md:p-12 overflow-y-auto">
+              <div className="p-8 md:p-12 overflow-y-auto" data-lenis-prevent="true">
                 <div className="flex justify-between items-center mb-8">
                   <h3 className="text-2xl font-black text-white">{editingStyle ? 'تعديل النمط' : 'إضافة نمط جديد'}</h3>
                   <button onClick={() => { setIsAddingStyle(false); setEditingStyle(null); }} className="text-gold-500/40 hover:text-gold-500"><X /></button>
@@ -503,7 +576,7 @@ export function AdminPanel({
                         <h4 className="text-sm font-black text-white text-right">معرض التصاميم</h4>
                       </div>
 
-                      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" data-lenis-prevent="true">
                         {(editingStyle?.galleryImages || []).map((imgUrl: string, idx: number) => (
                           <div key={idx} className="bg-egypt-black/50 p-4 rounded-2xl border border-gold-500/10 text-right">
                             <div className="flex justify-between items-center mb-3">
@@ -554,7 +627,7 @@ export function AdminPanel({
               exit={{ opacity: 0, scale: 0.9 }}
               className="bg-egypt-dark w-full max-w-2xl max-h-[90vh] rounded-[3rem] border border-gold-500/20 shadow-2xl overflow-hidden flex flex-col"
             >
-              <div className="p-8 md:p-12 overflow-y-auto">
+              <div className="p-8 md:p-12 overflow-y-auto" data-lenis-prevent="true">
                 <div className="flex justify-between items-center mb-8">
                   <h3 className="text-2xl font-black text-white">{editingProject ? 'تعديل المشروع' : 'إضافة مشروع جديد'}</h3>
                   <button onClick={() => { setIsAddingProject(false); setEditingProject(null); }} className="text-gold-500/40 hover:text-gold-500"><X /></button>
@@ -667,7 +740,7 @@ export function AdminPanel({
               exit={{ opacity: 0, scale: 0.9 }}
               className="bg-egypt-dark w-full max-w-4xl max-h-[90vh] rounded-[3rem] border border-gold-500/20 shadow-2xl overflow-hidden flex flex-col"
             >
-              <div className="p-8 md:p-12 overflow-y-auto">
+              <div className="p-8 md:p-12 overflow-y-auto" data-lenis-prevent="true">
                 <div className="flex justify-between items-center mb-8">
                   <h3 className="text-2xl font-black text-white">{editingCategory ? 'تعديل القسم والخامات' : 'إضافة قسم جديد'}</h3>
                   <button onClick={() => { setIsAddingCategory(false); setEditingCategory(null); setNewOptName(''); setNewOptImg(''); }} className="text-gold-500/40 hover:text-gold-500"><X /></button>
