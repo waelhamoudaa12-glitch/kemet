@@ -83,6 +83,9 @@ export default function App() {
     if (page === currentPage) return;
     setPageHistory(prev => [...prev, currentPage]);
     setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    // @ts-ignore
+    if (window.lenis) window.lenis.scrollTo(0, { immediate: true });
   };
 
   const goBack = () => {
@@ -91,6 +94,9 @@ export default function App() {
       const previousPage = newHistory.pop();
       if (previousPage) {
         setCurrentPage(previousPage);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        // @ts-ignore
+        if (window.lenis) window.lenis.scrollTo(0, { immediate: true });
       }
       return newHistory;
     });
@@ -650,7 +656,7 @@ export default function App() {
                   </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-6 py-12 md:px-20 md:py-20 pharaonic-pattern">
+                <div className="flex-1 overflow-y-auto px-6 py-12 md:px-20 md:py-20 pharaonic-pattern" data-lenis-prevent>
                   <div className="max-w-5xl mx-auto">
                     <div className="text-right mb-16">
                       <h2 className="text-5xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter">{selectedProject.title}</h2>
