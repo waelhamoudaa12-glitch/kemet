@@ -641,6 +641,8 @@ export function AdminPanel({
                     description: formData.get('description'),
                     beforeImage: activeProjectBefore,
                     afterImage: activeProjectAfter,
+                    extraBeforeImages: editingProject?.extraBeforeImages || [],
+                    extraAfterImages: editingProject?.extraAfterImages || [],
                     images: editingProject?.images || []
                   });
                 }}>
@@ -665,57 +667,96 @@ export function AdminPanel({
 
                   {/* Additional Images Section */}
                   <div className="space-y-6 pt-6 border-t border-gold-500/10">
-                    <div className="flex justify-between items-center">
-                       <button 
-                         type="button"
-                         onClick={() => {
-                            const newImages = [...(editingProject?.images || []), { before: '', after: '' }];
-                            setEditingProject({ ...editingProject ?? { id: `project_${Date.now()}`, title: '', description: '' }, images: newImages });
-                         }}
-                         className="text-gold-500 border border-gold-500/20 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-gold-500/5 hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2"
-                       >
-                          <Plus className="w-3 h-3" />
-                          إضافة مجموعة صور (قبل/بعد)
-                       </button>
-                       <h4 className="text-lg font-black text-white">صور إضافية</h4>
-                    </div>
-
-                    <div className="space-y-8">
-                       {(editingProject?.images || []).map((pair: any, idx: number) => (
-                          <div key={idx} className="bg-egypt-black/50 p-6 rounded-3xl border border-gold-500/10 space-y-4">
-                             <div className="flex justify-between items-center mb-2">
-                                <button 
-                                  type="button"
-                                  onClick={() => {
-                                     const newImages = editingProject.images.filter((_: any, i: number) => i !== idx);
-                                     setEditingProject({ ...editingProject, images: newImages });
-                                  }}
-                                  className="text-red-500 hover:text-red-400"
-                                >
-                                   <X className="w-4 h-4" />
-                                </button>
-                                <span className="text-gold-500 font-bold text-xs">مجموعة {idx + 2}</span>
-                             </div>
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <ImageInput 
-                                  value={pair.before} 
-                                  onChange={(val) => {
-                                     const newImages = [...editingProject.images];
-                                     newImages[idx] = { ...newImages[idx], before: val };
-                                     setEditingProject({ ...editingProject, images: newImages });
-                                  }} 
-                                />
-                                <ImageInput 
-                                  value={pair.after} 
-                                  onChange={(val) => {
-                                     const newImages = [...editingProject.images];
-                                     newImages[idx] = { ...newImages[idx], after: val };
-                                     setEditingProject({ ...editingProject, images: newImages });
-                                  }} 
-                                />
-                             </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       {/* Extra Before Images */}
+                       <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                             <button 
+                               type="button"
+                               onClick={() => {
+                                  const newImages = [...(editingProject?.extraBeforeImages || []), ''];
+                                  setEditingProject({ ...editingProject ?? { id: `project_${Date.now()}`, title: '', description: '' }, extraBeforeImages: newImages });
+                               }}
+                               className="text-gold-500 border border-gold-500/20 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-gold-500/5 hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2"
+                             >
+                                <Plus className="w-3 h-3" />
+                                إضافة صورة
+                             </button>
+                             <h4 className="text-sm font-black text-white">صور إضافية (قبل)</h4>
                           </div>
-                       ))}
+                          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" data-lenis-prevent="true">
+                             {(editingProject?.extraBeforeImages || []).map((imgStr: string, idx: number) => (
+                                <div key={idx} className="bg-egypt-black/50 p-4 rounded-xl border border-gold-500/10 text-right">
+                                   <div className="flex justify-between items-center mb-3">
+                                      <button 
+                                        type="button"
+                                        onClick={() => {
+                                           const newImages = editingProject.extraBeforeImages.filter((_: any, i: number) => i !== idx);
+                                           setEditingProject({ ...editingProject, extraBeforeImages: newImages });
+                                        }}
+                                        className="text-red-500 hover:text-red-400"
+                                      >
+                                         <X className="w-4 h-4" />
+                                      </button>
+                                      <span className="text-white/60 text-xs font-bold">صورة {idx + 1}</span>
+                                   </div>
+                                   <ImageInput 
+                                     value={imgStr} 
+                                     onChange={(val) => {
+                                        const newImages = [...editingProject.extraBeforeImages];
+                                        newImages[idx] = val;
+                                        setEditingProject({ ...editingProject, extraBeforeImages: newImages });
+                                     }} 
+                                   />
+                                </div>
+                             ))}
+                          </div>
+                       </div>
+
+                       {/* Extra After Images */}
+                       <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                             <button 
+                               type="button"
+                               onClick={() => {
+                                  const newImages = [...(editingProject?.extraAfterImages || []), ''];
+                                  setEditingProject({ ...editingProject ?? { id: `project_${Date.now()}`, title: '', description: '' }, extraAfterImages: newImages });
+                               }}
+                               className="text-gold-500 border border-gold-500/20 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-gold-500/5 hover:bg-gold-500 hover:text-egypt-black transition-all flex items-center gap-2"
+                             >
+                                <Plus className="w-3 h-3" />
+                                إضافة صورة
+                             </button>
+                             <h4 className="text-sm font-black text-white">صور إضافية (بعد)</h4>
+                          </div>
+                          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" data-lenis-prevent="true">
+                             {(editingProject?.extraAfterImages || []).map((imgStr: string, idx: number) => (
+                                <div key={idx} className="bg-egypt-black/50 p-4 rounded-xl border border-gold-500/10 text-right">
+                                   <div className="flex justify-between items-center mb-3">
+                                      <button 
+                                        type="button"
+                                        onClick={() => {
+                                           const newImages = editingProject.extraAfterImages.filter((_: any, i: number) => i !== idx);
+                                           setEditingProject({ ...editingProject, extraAfterImages: newImages });
+                                        }}
+                                        className="text-red-500 hover:text-red-400"
+                                      >
+                                         <X className="w-4 h-4" />
+                                      </button>
+                                      <span className="text-white/60 text-xs font-bold">صورة {idx + 1}</span>
+                                   </div>
+                                   <ImageInput 
+                                     value={imgStr} 
+                                     onChange={(val) => {
+                                        const newImages = [...editingProject.extraAfterImages];
+                                        newImages[idx] = val;
+                                        setEditingProject({ ...editingProject, extraAfterImages: newImages });
+                                     }} 
+                                   />
+                                </div>
+                             ))}
+                          </div>
+                       </div>
                     </div>
                   </div>
 

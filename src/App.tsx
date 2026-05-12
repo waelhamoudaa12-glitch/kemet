@@ -683,25 +683,59 @@ export default function App() {
                           </div>
                        </div>
 
-                       {/* Additional Image Pairs if any */}
-                       {selectedProject.images?.map((pair: any, idx: number) => (
-                          <div key={idx} className="space-y-8 pt-24 border-t border-gold-500/10">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                 <div className="space-y-4">
-                                    <span className="bg-egypt-dark text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-white/10 inline-block">قبل {idx + 2}</span>
-                                    <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                       <SmoothImage src={pair.before} alt={`Before ${idx + 2}`} className="w-full aspect-video" />
+                       {/* Additional Images (Before) */}
+                       {selectedProject.extraBeforeImages?.length > 0 && (
+                          <div className="pt-24 border-t border-gold-500/10">
+                              <h3 className="text-3xl font-black text-white mb-12 text-right">المزيد من صور (قبل)</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                 {selectedProject.extraBeforeImages.filter(Boolean).map((imgStr: string, idx: number) => (
+                                    <div key={idx} className="space-y-4">
+                                       <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
+                                          <SmoothImage src={imgStr} alt={`Before Extra ${idx}`} className="w-full aspect-video" />
+                                       </div>
                                     </div>
-                                 </div>
-                                 <div className="space-y-4">
-                                    <span className="bg-gold-500 text-egypt-black px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest inline-block">بعد {idx + 2}</span>
-                                    <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                       <SmoothImage src={pair.after} alt={`After ${idx + 2}`} className="w-full aspect-video" />
-                                    </div>
-                                 </div>
+                                 ))}
                               </div>
                           </div>
-                       ))}
+                       )}
+
+                       {/* Additional Images (After) */}
+                       {selectedProject.extraAfterImages?.length > 0 && (
+                          <div className="pt-24 border-t border-gold-500/10">
+                              <h3 className="text-3xl font-black text-white mb-12 text-right">المزيد من صور (بعد)</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                 {selectedProject.extraAfterImages.filter(Boolean).map((imgStr: string, idx: number) => (
+                                    <div key={idx} className="space-y-4">
+                                       <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
+                                          <SmoothImage src={imgStr} alt={`After Extra ${idx}`} className="w-full aspect-video" />
+                                       </div>
+                                    </div>
+                                 ))}
+                              </div>
+                          </div>
+                       )}
+
+                       {/* Backwards compatibility for old images pairs */}
+                       {selectedProject.images?.length > 0 && (
+                          <div className="pt-24 border-t border-gold-500/10 space-y-12">
+                              {selectedProject.images.map((pair: any, idx: number) => (
+                                  <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                     <div className="space-y-4">
+                                        <span className="bg-egypt-dark text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-white/10 inline-block">قبل {idx + 2}</span>
+                                        <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
+                                           <SmoothImage src={pair.before} alt={`Before ${idx + 2}`} className="w-full aspect-video" />
+                                        </div>
+                                     </div>
+                                     <div className="space-y-4">
+                                        <span className="bg-gold-500 text-egypt-black px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest inline-block">بعد {idx + 2}</span>
+                                        <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
+                                           <SmoothImage src={pair.after} alt={`After ${idx + 2}`} className="w-full aspect-video" />
+                                        </div>
+                                     </div>
+                                  </div>
+                              ))}
+                          </div>
+                       )}
                     </div>
 
                     <div className="mt-32 text-center pb-20">
