@@ -54,9 +54,9 @@ const ICON_MAP: Record<string, any> = {
   kitchen: Utensils
 };
 
-const SmoothImage = ({ src, alt, className, referrerPolicy }: { src: string; alt: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }) => {
+const SmoothImage = ({ src, alt, className, referrerPolicy, onClick }: { src: string; alt: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy; onClick?: () => void }) => {
     return (
-        <div className={`relative overflow-hidden ${className}`}>
+        <div className={`relative overflow-hidden ${className} ${onClick ? 'cursor-pointer' : ''}`} onClick={onClick}>
             <img
                 src={src}
                 alt={alt}
@@ -112,6 +112,7 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeProjectHover, setActiveProjectHover] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -671,13 +672,13 @@ export default function App() {
                              <div className="space-y-4">
                                 <span className="bg-egypt-dark text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-white/10 inline-block">قبل التحول</span>
                                 <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                   <SmoothImage src={selectedProject.beforeImage} alt="Before" className="w-full aspect-video md:aspect-[4/5] lg:aspect-video" />
+                                   <SmoothImage src={selectedProject.beforeImage} alt="Before" className="w-full aspect-video md:aspect-[4/5] lg:aspect-video" onClick={() => setFullScreenImage(selectedProject.beforeImage)} />
                                 </div>
                              </div>
                              <div className="space-y-4">
                                 <span className="bg-gold-500 text-egypt-black px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest inline-block">بعد التشطيب</span>
                                 <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                   <SmoothImage src={selectedProject.afterImage} alt="After" className="w-full aspect-video md:aspect-[4/5] lg:aspect-video" />
+                                   <SmoothImage src={selectedProject.afterImage} alt="After" className="w-full aspect-video md:aspect-[4/5] lg:aspect-video" onClick={() => setFullScreenImage(selectedProject.afterImage)} />
                                 </div>
                              </div>
                           </div>
@@ -691,7 +692,7 @@ export default function App() {
                                  {selectedProject.extraBeforeImages.filter(Boolean).map((imgStr: string, idx: number) => (
                                     <div key={idx} className="space-y-4">
                                        <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                          <SmoothImage src={imgStr} alt={`Before Extra ${idx}`} className="w-full aspect-video" />
+                                          <SmoothImage src={imgStr} alt={`Before Extra ${idx}`} className="w-full aspect-video" onClick={() => setFullScreenImage(imgStr)} />
                                        </div>
                                     </div>
                                  ))}
@@ -707,7 +708,7 @@ export default function App() {
                                  {selectedProject.extraAfterImages.filter(Boolean).map((imgStr: string, idx: number) => (
                                     <div key={idx} className="space-y-4">
                                        <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                          <SmoothImage src={imgStr} alt={`After Extra ${idx}`} className="w-full aspect-video" />
+                                          <SmoothImage src={imgStr} alt={`After Extra ${idx}`} className="w-full aspect-video" onClick={() => setFullScreenImage(imgStr)} />
                                        </div>
                                     </div>
                                  ))}
@@ -723,13 +724,13 @@ export default function App() {
                                      <div className="space-y-4">
                                         <span className="bg-egypt-dark text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-white/10 inline-block">قبل {idx + 2}</span>
                                         <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                           <SmoothImage src={pair.before} alt={`Before ${idx + 2}`} className="w-full aspect-video" />
+                                           <SmoothImage src={pair.before} alt={`Before ${idx + 2}`} className="w-full aspect-video" onClick={() => setFullScreenImage(pair.before)} />
                                         </div>
                                      </div>
                                      <div className="space-y-4">
                                         <span className="bg-gold-500 text-egypt-black px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest inline-block">بعد {idx + 2}</span>
                                         <div className="rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl">
-                                           <SmoothImage src={pair.after} alt={`After ${idx + 2}`} className="w-full aspect-video" />
+                                           <SmoothImage src={pair.after} alt={`After ${idx + 2}`} className="w-full aspect-video" onClick={() => setFullScreenImage(pair.after)} />
                                         </div>
                                      </div>
                                   </div>
@@ -839,8 +840,8 @@ export default function App() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {images.map((img: string, i: number) => (
                         <div key={i} className={`rounded-[2rem] overflow-hidden border border-gold-500/10 shadow-2xl relative group ${i === 0 ? 'md:col-span-2 lg:col-span-2 aspect-video' : 'aspect-square'}`}>
-                           <SmoothImage src={img} alt={`${style.name} ${i}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" referrerPolicy="no-referrer" />
-                           <div className="absolute inset-0 bg-egypt-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                           <SmoothImage src={img} alt={`${style.name} ${i}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" referrerPolicy="no-referrer" onClick={() => setFullScreenImage(img)} />
+                           <div className="absolute inset-0 bg-egypt-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                         </div>
                       ))}
                     </div>
@@ -1257,6 +1258,36 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Full Screen Image Modal */}
+      <AnimatePresence>
+        {fullScreenImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-egypt-black/95 flex items-center justify-center p-4 backdrop-blur-xl"
+            onClick={() => setFullScreenImage(null)}
+          >
+            <button 
+              className="absolute top-8 right-8 text-white/50 hover:text-white bg-white/10 rounded-full w-12 h-12 flex items-center justify-center transition-all z-10"
+              onClick={() => setFullScreenImage(null)}
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <motion.img 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              src={fullScreenImage} 
+              alt="Fullscreen" 
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       </>
       ) : (
         <AdminPanel 
